@@ -114,7 +114,8 @@ public class FrameCommonSteps {
 
     @Then("^we get text on frame (.*?) locator (.*?)$")
     public void weGetTextOnPage(String element, String locator) {
-        frameCommonMethods.gettext(page, iFrame, null, null, element, locator);
+        String value = frameCommonMethods.gettext(page, iFrame, null, null, element, locator);
+        System.out.println("Value: " + value);
     }
 
     @Then("^we has value on frame (.*?) of locator (.*?) value \"(.*?)\"$")
@@ -124,8 +125,7 @@ public class FrameCommonSteps {
 
     @Then("^we get list of elements on frame (.*?) locator (.*?)$")
     public void weGetListOfElementsOnNewPage(String element, String locator) {
-        String value = frameCommonMethods.gettext(iframePage, iFrame, null, null, element, locator);
-        System.out.println(value);
+        frameCommonMethods.gettext(iframePage, iFrame, null, null, element, locator);
     }
 
     @When("we click radio on frame (.*?) list locator (.*?)$")
