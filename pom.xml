@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -7,16 +6,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.fnb_ptaf</groupId>
-    <artifactId>ptaf</artifactId>
+    <artifactId>fnb_ptaf</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>22</maven.compiler.source>
-        <maven.compiler.target>22</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
     </properties>
 
     <dependencies>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
@@ -27,7 +27,8 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <version>7.3.0</version>
+            <version>7.7.1</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -96,7 +97,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.24</version> <!-- or the latest version -->
+            <version>1.18.24</version>
             <scope>provided</scope>
         </dependency>
 
@@ -109,8 +110,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>22</source>
-                    <target>22</target>
+                    <source>21</source>
+                    <target>21</target>
                     <compilerArgs>
                         <arg>--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
                     </compilerArgs>
@@ -131,21 +132,53 @@
                 </configuration>
             </plugin>
 
-            <!-- Uncomment if you use the Cucumber Maven plugin -->
-            <!--
+            <!-- Surefire Plugin for Running Tests -->
             <plugin>
-                <groupId>io.cucumber</groupId>
-                <artifactId>cucumber-maven-plugin</artifactId>
-                <version>7.12.1</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+                <configuration>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+                    </suiteXmlFiles>
+                    <parallel>methods</parallel>
+                    <threadCount>4</threadCount>
+                    <useUnlimitedThreads>false</useUnlimitedThreads>
+
+                    <systemPropertyVariables>
+                        <cucumber.plugin>json:target/cucumber-reports/cucumber.json, junit:target/cucumber-reports/cucumber.xml</cucumber.plugin>
+                        <cucumber.options>--plugin json:target/cucumber-reports/cucumber.json --plugin junit:target/cucumber-reports/cucumber.xml</cucumber.options>
+                    </systemPropertyVariables>
+
+                    <reportsDirectory>target/surefire-reports</reportsDirectory>
+                    <useFile>true</useFile>  <!-- Ensures XML TestNG reports are generated -->
+                </configuration>
+            </plugin>
+
+            <!-- Cucumber Reporting Plugin -->
+            <plugin>
+                <groupId>net.masterthought</groupId>
+                <artifactId>maven-cucumber-reporting</artifactId>
+                <version>5.0.0</version>
                 <executions>
                     <execution>
+                        <id>generate-cucumber-reports</id>
+                        <phase>verify</phase>
                         <goals>
-                            <goal>test</goal>
+                            <goal>generate</goal>
                         </goals>
+                        <configuration>
+                            <projectName>FNB PTAF</projectName>
+                            <outputDirectory>target/cucumber-reports</outputDirectory>
+                            <jsonFiles>
+                                <param>target/cucumber-reports/cucumber.json</param>
+                            </jsonFiles>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
-            -->
+
         </plugins>
     </build>
+
 </project>

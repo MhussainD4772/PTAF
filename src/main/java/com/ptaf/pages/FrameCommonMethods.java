@@ -1,5 +1,6 @@
 package com.ptaf.pages;
 
+import com.microsoft.playwright.Download;
 import com.microsoft.playwright.ElementHandle;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
@@ -12,6 +13,7 @@ import io.cucumber.java.Scenario;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -196,6 +198,33 @@ public class FrameCommonMethods {
         performAction("screenshot", page, iFrame, iFrame_2, iFrame_3, element, locator, value); // Perform screenshot action
         finalizeScenario(page, iFrame, iFrame_2, iFrame_3, targetLocator); // Finalize the scenario by handling teardown
     }
+
+    /**
+     * Initiates a file download from a web page and saves it to a specified location.
+     *
+     * @param page      Playwright Page object representing the browser page.
+     * @param iFrame    First-level iFrame identifier (can be null if not applicable).
+     * @param iFrame_2  Second-level iFrame identifier (nested frame, if applicable).
+     * @param iFrame_3  Third-level iFrame identifier (deepest nested frame, if applicable).
+     * @param element   The element name as defined in locator configuration (e.g., YAML).
+     * @param locator   The type of locator to be used (e.g., XPATH, CSS, etc.).
+     * @param value     The directory path where the downloaded file should be saved.
+     * @param name      A custom suffix or name to append to the downloaded file.
+     */
+    public void download(Page page, String iFrame, String iFrame_2, String iFrame_3,
+                         String element, String locator, String value, String name) {
+
+        // Start waiting for a download event after the download-triggering action is performed
+        Download download = page.waitForDownload(() -> {
+            // Perform the click action to initiate the download from the specified element
+            click(page, iFrame, iFrame_2, iFrame_3, element, locator);
+        });
+
+        // Once the download is complete, save the file to the specified path
+        // The file is saved using its suggested filename appended with a custom suffix
+        download.saveAs(Paths.get(value, download.suggestedFilename() + name));
+    }
+
 
     /**
      * Scrolls the page to the specified element within nested iframes.
@@ -397,8 +426,12 @@ public class FrameCommonMethods {
      * @param locator  The locator string used to identify the element.
      */
     public void not_exists(Page page, String iFrame, String iFrame_2, String iFrame_3, String element, String locator) {
-        performAction("not_exists", page, iFrame, iFrame_2, iFrame_3, element, locator, null); // Check for existence of the element
+        Locator targetLocator = getElement_locator(page, iFrame, iFrame_2, iFrame_3, element, locator);
+        if (targetLocator.count() > 0) {
+            performAction("not_exists", page, iFrame, iFrame_2, iFrame_3, element, locator, null);
+        }
     }
+
 
     /**
      * Right-clicks on a specified element within nested iframes.
@@ -735,6 +768,11 @@ public class FrameCommonMethods {
         return elementAction.getLocator(iFrame, iFrame_2, iFrame_3, element, locator, page, null); // Retrieve the locator for the specified element
     }
 
+    public String get_frame_element_string_value(Page page,String iFrame, String iFrame_2, String iFrame_3, String element, String locator){
+        Locator final_locator = getElement_locator(page, iFrame, iFrame_2, iFrame_3, element, locator);
+        return final_locator.inputValue();
+    }
+
     /**
      * Asserts that the specified element contains the expected text.
      *
@@ -744,7 +782,7 @@ public class FrameCommonMethods {
      * @param locator      The locator string used to identify the element.
      * @param expectedText The expected text that should be contained within the element.
      */
-    public void contain(Page page, String iFrame, String iFrame_2, String iFrame_3, String element, String locator, String expectedText){
+    public void contain(Page page, String iFrame, String iFrame_2, String iFrame_3, String element, String locator, String expectedText) {
         performAction("hastext", page, iFrame, iFrame_2, iFrame_3, element, locator, expectedText);
     }
 
@@ -774,10 +812,10 @@ public class FrameCommonMethods {
      * Retrieves and prints a list of elements on the specified page within nested iframes.
      * This method checks the specified locator and prints each located element's details for debugging purposes.
      *
-     * @param page     The Playwright Page object representing the current browser page.
-     * @param iFrame   The identifier for the outer iframe.
-     * @param element  The name of the element to locate.
-     * @param locator  The locator key used to retrieve the element.
+     * @param page    The Playwright Page object representing the current browser page.
+     * @param iFrame  The identifier for the outer iframe.
+     * @param element The name of the element to locate.
+     * @param locator The locator key used to retrieve the element.
      */
     public void getListOfElements(Page page, String iFrame, String element, String locator) {
         // Retrieve a list of element handles matching the provided element and locator.
@@ -800,10 +838,10 @@ public class FrameCommonMethods {
      * This method retrieves the elements matching the provided name and locator,
      * and unchecked the first enabled radio button found.
      *
-     * @param page     The current Playwright Page.
-     * @param iFrame   The identifier for the outer iframe.
-     * @param element  The logical name of the radio button to uncheck.
-     * @param locator  The locator string used to identify the radio button.
+     * @param page    The current Playwright Page.
+     * @param iFrame  The identifier for the outer iframe.
+     * @param element The logical name of the radio button to uncheck.
+     * @param locator The locator string used to identify the radio button.
      */
     public void uncheckRadioButton(Page page, String iFrame, String element, String locator) {
         // Retrieve the list of radio button elements within the specified iframes.
@@ -826,10 +864,10 @@ public class FrameCommonMethods {
      * This method retrieves the elements matching the provided name and locator,
      * and checks the first enabled radio button found.
      *
-     * @param page     The current Playwright Page.
-     * @param iFrame   The identifier for the outer iframe.
-     * @param element  The logical name of the radio button to click.
-     * @param locator  The locator string used to identify the radio button.
+     * @param page    The current Playwright Page.
+     * @param iFrame  The identifier for the outer iframe.
+     * @param element The logical name of the radio button to click.
+     * @param locator The locator string used to identify the radio button.
      */
     public void clickRadioButton(Page page, String iFrame, String element, String locator) {
         // Retrieve the list of radio button elements within the specified iframes.
@@ -927,15 +965,15 @@ public class FrameCommonMethods {
     /**
      * Finalizes the scenario by performing necessary cleanup actions and capturing
      * screenshots if no failures occurred during the scenario execution.
-     *
+     * <p>
      * This method checks if the scenario has completed successfully and, if so,
      * it invokes a utility method to handle the teardown process, which may include
      * taking screenshots of the specified element(s) and performing any necessary cleanup.
      *
-     * @param page The current Playwright Page instance for which the scenario is being finalized.
-     * @param iFrame Locator for the first iframe, if applicable (can be null if not used).
-     * @param iFrame_2 Locator for the second iframe, if applicable (can be null if not used).
-     * @param iFrame_3 Locator for the third iframe, if applicable (can be null if not used).
+     * @param page          The current Playwright Page instance for which the scenario is being finalized.
+     * @param iFrame        Locator for the first iframe, if applicable (can be null if not used).
+     * @param iFrame_2      Locator for the second iframe, if applicable (can be null if not used).
+     * @param iFrame_3      Locator for the third iframe, if applicable (can be null if not used).
      * @param targetLocator A string representing the locator of the element
      *                      from which to capture the screenshot post-finalization.
      */

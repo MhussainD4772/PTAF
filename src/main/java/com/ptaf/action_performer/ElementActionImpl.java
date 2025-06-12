@@ -161,6 +161,22 @@ public class ElementActionImpl extends PageHelper implements ElementAction {
         // Delegates with null page context for frame-specific assertion
         return assertElementText(null, element, key, expectedText, frameLocator);
     }
+    @Override
+    public String performActionPageWithReturn(Page page, String action, String element, String key, String value) {
+        try {
+            Locator targetLocator = getLocatorBasedOnPage(page, element, key);
+            if (targetLocator == null) {
+                logger.error("Locator not found for element: {} with key: {}", element, key);
+                return null;
+            }
+
+            actionPerformer.waitForLocator(targetLocator);
+            return actionPerformer.performActionWithReturn(page, action, targetLocator, value);
+        } catch (Exception e) {
+            logger.error("Exception in performActionPageWithReturn for element '{}' and action '{}':", element, action, e);
+            return null;
+        }
+    }
 
     /**
      * Internal method for performing actions on either a Page or FrameLocator.

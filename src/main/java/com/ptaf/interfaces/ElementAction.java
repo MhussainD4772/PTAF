@@ -28,6 +28,19 @@ public interface ElementAction {
     boolean performActionPage(Page page, String action, String element, String key, String value);
 
     /**
+     * Performs an action and returns a String result when applicable (e.g., gettext, getvalue).
+     * If the action does not yield a result, return null.
+     *
+     * @param page    The Playwright Page instance.
+     * @param action  The action to perform.
+     * @param element Logical name of the element.
+     * @param key     Locator string.
+     * @param value   Optional value needed for the action.
+     * @return The resulting String value, or null if not applicable.
+     */
+    String performActionPageWithReturn(Page page, String action, String element, String key, String value);
+
+    /**
      * Performs a specified action on a web element located within a specified frame.
      *
      * @param frameLocator The Playwright FrameLocator instance used to identify the frame containing the element.

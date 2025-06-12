@@ -126,6 +126,12 @@ public class PageCommonSteps {
         pageCommonMethods.getListOfElements(page, element, locator);
     }
 
+    @Then("^we get text of elements on page (.*?) locator (.*?)$")
+    public void weGetTextOfElementsOnPage(String element, String locator) {
+        String value = pageCommonMethods.gettext(page, element, locator);
+        System.out.println("Value: " + value);
+    }
+
     @When("we click radio on page (.*?) list locator (.*?)$")
     public void clickRadioOnPage(String element, String locator) {
         pageCommonMethods.clickRadioButton(page, element, locator);

@@ -1,5 +1,6 @@
 package com.ptaf.pages;
 
+import com.microsoft.playwright.Download;
 import com.microsoft.playwright.ElementHandle;
 import com.microsoft.playwright.Locator;
 import com.ptaf.action_performer.ElementActionImpl;
@@ -10,6 +11,8 @@ import com.microsoft.playwright.Page;
 import io.cucumber.java.Scenario;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -65,6 +68,17 @@ public class PageCommonMethods {
      */
     public void click(Page page, String element, String locator) {
         performAction("click", page, element, locator, null); // Delegate the click action to performAction method
+    }
+
+    /**
+     * Check on radio on a web element specified by the locator.
+     *
+     * @param page    The current Playwright Page.
+     * @param element The logical name of the element being clicked.
+     * @param locator The locator string used to identify the element.
+     */
+    public void radio(Page page, String element, String locator) {
+        performAction("radio", page, element, locator, null); // Delegate the click action to performAction method
     }
 
     /**
@@ -186,6 +200,30 @@ public class PageCommonMethods {
     }
 
     /**
+     * Initiates a file download from the given page by interacting with a specified element
+     * and saves the downloaded file to the provided directory with a custom suffix.
+     *
+     * @param page     Playwright Page object representing the current browser page.
+     * @param element  The element name defined in the locator configuration (e.g., YAML key).
+     * @param locator  The locator type used to identify the element (e.g., XPATH, CSS).
+     * @param value    The directory path where the downloaded file should be saved.
+     * @param name     A custom suffix or name to append to the downloaded file name.
+     */
+    public void download(Page page, String element, String locator, String value, String name) {
+
+        // Wait for a download to begin after performing the download-triggering action
+        Download download = page.waitForDownload(() -> {
+            // Perform the click action on the specified element to initiate the download
+            click(page, element, locator);
+        });
+
+        // After the download is completed, save the file to the specified path
+        // The filename is composed of the browser-suggested name plus the provided suffix
+        download.saveAs(Paths.get(value, download.suggestedFilename() + name));
+    }
+
+
+    /**
      * Scrolls the page to the specified element.
      *
      * @param page    The current Playwright Page.
@@ -242,14 +280,22 @@ public class PageCommonMethods {
     }
 
     /**
-     * Gets the text content of the specified element.
+     * Retrieves the visible text content of the specified element on the given page.
+     * Logs a message if the text is null or empty.
      *
-     * @param page    The current Playwright Page.
-     * @param element The logical name of the element to extract text from.
-     * @param locator The locator string used to identify the element.
+     * @param page    The Playwright {@link Page} instance used for locating the element.
+     * @param element The logical name or identifier of the element (used in the YAML or config).
+     * @param locator The specific locator key for identifying the element in the configuration.
+     * @return The text content of the element, or null if not found or empty.
      */
-    public void gettext(Page page, String element, String locator) {
-        performAction("gettext", page, element, locator, null); // Delegate the action to get text to performAction method
+    public String gettext(Page page, String element, String locator) {
+        String value = getStringValue("gettext", page, element, locator, null);
+
+        if (value == null || value.trim().isEmpty()) {
+            System.out.println("There is no text value for element: " + element + ", locator: " + locator);
+        }
+
+        return value;
     }
 
     /**
@@ -339,6 +385,11 @@ public class PageCommonMethods {
         return elementAction.getLocator(iFrame, iFrame_2, iFrame_3, element, locator, page, null); // Retrieve the locator for the specified element
     }
 
+    public String get_element_string_value(Page page,String element, String locator){
+        Locator final_locator = getElement_locator(page, null, null, null, element, locator);
+        return final_locator.inputValue();
+    }
+
     /**
      * Checks if the specified element exists on the page.
      *
@@ -358,7 +409,11 @@ public class PageCommonMethods {
      * @param locator The locator string used to identify the element.
      */
     public void not_exists(Page page, String element, String locator) {
-        performAction("not_exists", page, element, locator, null); // Delegate existence check to performAction method
+        Locator targetLocator = getElement_locator(page, null, null, null, element, locator);
+        if (targetLocator.count() > 0) {
+            performAction("not_exists", page, element, locator, null);
+        }
+
     }
 
     /**
@@ -648,6 +703,63 @@ public class PageCommonMethods {
     }
 
     /**
+     * Executes an action and returns its string result if applicable.
+     * Does not affect the existing performAction method logic.
+     *
+     * @param action  The action to perform (e.g., "gettext", "getvalue")
+     * @param page    The current Playwright Page
+     * @param element The logical name of the element involved
+     * @param locator The locator string used to identify the element
+     * @param value   Any additional value needed for the action
+     * @return The string result of the action, or null if not applicable
+     */
+    private String getStringValue(String action, Page page, String element, String locator, String value) {
+        final String[] result = {null};
+        executeStep(() -> {
+            // Perform the action and capture the result
+            result[0] = elementAction.performActionPageWithReturn(page, action, element, locator, value);
+
+            // Handle failure if result is expected but null
+            if (result[0] == null && actionRequiresResult(action)) {
+                handleFailure(page, action, element);
+            } else if (result[0] != null && !result[0].isEmpty()) {
+                logger.info("Action '{}' returned result: {}", action, result[0]);
+            }
+        });
+        return result[0];
+    }
+
+    /**
+     * Determines whether the specified action is expected to return a result.
+     * Used to differentiate between validation/assertion actions and void-type actions.
+     *
+     * @param action The name of the action.
+     * @return true if the action typically returns a value and should not be null.
+     */
+    private boolean actionRequiresResult(String action) {
+        switch (action.toLowerCase()) {
+            case "gettext":
+            case "getvalue":
+            case "getattribute":
+            case "hastext":
+            case "hasclass":
+            case "hasequalvalue":
+            case "isempty":
+            case "isvisible":
+            case "isenabled":
+            case "ischecked":
+            case "isdisabled":
+            case "exists":
+            case "not_exists":
+            case "waitfortext":
+            case "waitforvalue":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
      * Checks if the specified element has the expected value.
      *
      * <p>
@@ -679,9 +791,11 @@ public class PageCommonMethods {
      * @param page    The current Playwright Page instance used to interact with the browser.
      * @param element The logical name of the element whose value is being retrieved, for logging purposes.
      * @param locator The locator string used to identify the element on the page.
+     * @return
      */
-    public void getvalue(Page page, String element, String locator) {
+    public String getvalue(Page page, String element, String locator) {
         performAction("getvalue", page, element, locator, null); // Delegate the action to retrieve the value to performAction method
+        return element;
     }
 
     /**
@@ -701,13 +815,16 @@ public class PageCommonMethods {
         if (elements.isEmpty()) {
             logger.info("No elements found for the specified locator."); // Log that no elements were found
         } else {
-            // Iterate through each element in the list and print its details.
+            // Iterate through each element in the list and print its details on a new line.
+            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < elements.size(); i++) {
                 ElementHandle handle = elements.get(i);
-                logger.info("Element " + (i + 1) + ": " + handle.toString()); // Log the details of each found element
+                sb.append("Element ").append(i + 1).append(": ").append(handle.toString()).append("\n");
             }
+            logger.info(sb.toString().trim()); // Trim to remove the last extra newline
         }
     }
+
 
     /**
      * Attempts to click a radio button within a list of elements on a specified page.

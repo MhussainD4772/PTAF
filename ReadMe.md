@@ -1,22 +1,46 @@
 
 ---
 
-# PTAF - Playwright Test Automation Framework
+# FNB PTAF - Playwright Test Automation Framework
 
 ## Overview
 
-The **PTAF** (Playwright Test Automation Framework) is an advanced test automation framework designed for automated end-to-end testing of web applications. It leverages [Playwright](https://playwright.dev/) for browser automation, [Cucumber](https://cucumber.io/) for implementing Behavior-Driven Development (BDD), and [TestNG](https://testng.org/) or [JUnit](https://junit.org/junit5/) for test execution. The framework is built with flexibility, maintainability, and scalability in mind, allowing tests to run in multiple environments (e.g., QA, staging, development) across different browsers (e.g., Chrome, Firefox, WebKit). Detailed reporting and easy-to-understand Gherkin scenarios allow non-technical team members to participate in the testing process.
+The **FNB PTAF** (Playwright Test Automation Framework) is an advanced test automation framework designed for automated end-to-end testing of web applications. It leverages [Playwright](https://playwright.dev/) for browser automation, [Cucumber](https://cucumber.io/) for implementing Behavior-Driven Development (BDD), and [TestNG](https://testng.org/) or [JUnit](https://junit.org/junit5/) for test execution. The framework is built with flexibility, maintainability, and scalability in mind, allowing tests to run in multiple environments (e.g., QA, staging, development) across different browsers (e.g., Chrome, Firefox, WebKit). Detailed reporting and easy-to-understand Gherkin scenarios allow non-technical team members to participate in the testing process.
 
-The key aspects of **PTAF** are:
+The key aspects of **FNB PTAF** are:
 - **Cross-browser testing** to ensure your application works across all major browsers.
 - **Parallel execution** to speed up test execution, allowing tests to run concurrently in different environments or on different browsers.
 - **Extensive reporting** using ExtentReports for comprehensive HTML reports that include screenshots, execution timelines, and pass/fail status for each test.
 - **Environment-based configuration**, allowing easy switching between different URLs (e.g., staging, production) without modifying the core test logic.
 - **Reusable utilities** for common actions (e.g., click, type, select) and assertions, making test development faster and easier to maintain.
 
+---
+
+## Key Features
+
+### 1. Cross-Browser Support
+The framework supports multiple browsers (Chrome, Firefox, and WebKit) using Playwright. Tests can be configured to run on different browsers depending on the needs of the testing phase.
+
+### 2. Parallel Execution
+By leveraging TestNG and JUnit, the framework allows tests to run in parallel, significantly reducing the time required to execute large test suites.
+
+### 3. Behavior-Driven Development (BDD)
+Cucumber is used to write test scenarios in Gherkin syntax, which makes the tests easier to understand for non-technical team members. Each scenario is linked to a step definition in Java, which implements the test logic using Playwright.
+
+### 4. Environment-Based Configuration
+Using YAML configuration files, the framework allows easy switching between environments (e.g., `rnd_url`, `qa_url`, `prod_url`) without altering the test code. This allows tests to be run in multiple environments, from development to production.
+
+### 5. Detailed Reporting
+The framework generates detailed HTML reports using ExtentReports, providing:
+- A summary of passed, failed, and skipped tests.
+- Screenshots of failures or specific steps.
+- Execution timelines to visualize test progress and parallel execution.
+
+---
+
 ## Project Structure
 
-The **PTAF** project follows a well-organized directory structure that separates test logic from configuration and reports. Here’s a breakdown of the structure:
+The **FNB PTAF** project follows a well-organized directory structure that separates test logic from configuration and reports. Here’s a breakdown of the structure:
 
 ```plaintext
 FNB-PTAF/
@@ -38,7 +62,7 @@ FNB-PTAF/
 └── pom.xml                                   # Maven configuration file
 ```
 
-
+---
 
 ## Conclusion
 
@@ -302,6 +326,6 @@ After the test execution is complete, open the HTML report located at `target/cu
 
 ## Conclusion
 
-The **PTAF (Playwright Test Automation Framework)** is designed to be flexible, scalable, and easy to maintain. With its environment-based configuration, parallel execution, detailed reporting, and reusable utilities, it significantly improves the speed and reliability of testing web applications. Whether you're testing locally or in a CI/CD pipeline, this framework provides the tools and structure needed to ensure your application is thoroughly tested across multiple environments and browsers.
+The **FNB PTAF (Playwright Test Automation Framework)** is designed to be flexible, scalable, and easy to maintain. With its environment-based configuration, parallel execution, detailed reporting, and reusable utilities, it significantly improves the speed and reliability of testing web applications. Whether you're testing locally or in a CI/CD pipeline, this framework provides the tools and structure needed to ensure your application is thoroughly tested across multiple environments and browsers.
 
 Feel free to contribute to the project or raise issues as you continue to expand the test suite!

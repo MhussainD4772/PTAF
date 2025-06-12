@@ -11,14 +11,8 @@ import io.cucumber.java.Scenario;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Hooks class manages the lifecycle of the browser and page instances for Cucumber scenarios.
- * This includes setup and teardown operations, ensuring proper resource management
- * throughout the execution of test scenarios.
- */
 public class Hooks {
 
-    // Thread-local variables to ensure each thread has its own instance of Browser, Page, etc.
     private static final ThreadLocal<Browser> browserThreadLocal = new ThreadLocal<>();
     private static final ThreadLocal<BrowserContext> contextThreadLocal = new ThreadLocal<>();
     private static final ThreadLocal<Page> pageThreadLocal = new ThreadLocal<>();
@@ -27,171 +21,129 @@ public class Hooks {
 
     private static final Logger logger = LoggerFactory.getLogger(Hooks.class);
 
-    // Flags to track scenario states
     private static boolean isLastScenarioFeature = false;
     private static boolean isFirstScenarioInFeature = true;
 
-    /**
-     * Called before each scenario execution.
-     * Initializes the browser and page context if not already done.
-     *
-     * @param scenario The Cucumber Scenario being executed.
-     */
     @Before
     public void setUp(Scenario scenario) {
-        scenarioThreadLocal.set(scenario); // Store the current scenario
+        scenarioThreadLocal.set(scenario);
 
-        // Check if the current scenario is marked as "@LastScenario"
         if (scenario.getSourceTagNames().contains("@LastScenario")) {
-            isLastScenarioFeature = true; // Set flag indicating this is the last scenario
+            isLastScenarioFeature = true;
         }
 
-        // If this is the last scenario and it's not the first one, reuse the browser
         if (isLastScenarioFeature && !isFirstScenarioInFeature) {
             logger.info("Reusing browser instance for feature with @LastScenario tag.");
-            return; // Skip browser reinitialization
+            return;
         }
 
         try {
-            // Define the type of browser to initialize
-            BrowserFactory.BrowserTypeEnum browserTypeEnum = BrowserFactory.BrowserTypeEnum.CHROME;
-            Browser browser = BrowserFactory.createBrowser(browserTypeEnum); // Create a new browser instance
-            browserThreadLocal.set(browser); // Store browser instance in thread-local variable
+            String browserName = com.ptaf.utils.ConfigurationProperties.getBrowser();
+            BrowserFactory.BrowserTypeEnum browserTypeEnum = switch (browserName.toUpperCase()) {
+                case "CHROME" -> BrowserFactory.BrowserTypeEnum.CHROME;
+                case "FIREFOX" -> BrowserFactory.BrowserTypeEnum.FIREFOX;
+                case "WEBKIT" -> BrowserFactory.BrowserTypeEnum.WEBKIT;
+                case "EDGE" -> BrowserFactory.BrowserTypeEnum.EDGE;
+                default -> throw new IllegalArgumentException("Unsupported browser type: " + browserName);
+            };
 
-            // Create a new browser context
-            BrowserContext context = browser.newContext();
-            contextThreadLocal.set(context); // Store browser context in thread-local variable
+            Browser browser = BrowserFactory.createBrowser(browserTypeEnum);
+            browserThreadLocal.set(browser);
 
-            // Open a new page in the context
+            BrowserContext context = BrowserFactory.createContextWithVideo(browser);
+            contextThreadLocal.set(context);
+
             Page page = context.newPage();
-            pageThreadLocal.set(page); // Store page instance in thread-local variable
+            pageThreadLocal.set(page);
 
-            // Initialize PageCommonMethods with the current page
             PageCommonMethods pageCommonMethods = new PageCommonMethods(page);
             pageCommonMethodsThreadLocal.set(pageCommonMethods);
 
-            logger.info("Browser setup completed for scenario: {}", scenario.getName()); // Log successful setup
+            logger.info("Browser setup completed for scenario: {}", scenario.getName());
         } catch (Exception e) {
-            // Log any errors during the browser setup process
             logger.error("Error setting up the browser for scenario: {}", e.getMessage());
-            throw new RuntimeException("Browser setup failed", e); // Rethrow with failure message
+            throw new RuntimeException("Browser setup failed", e);
         }
     }
 
-    /**
-     * Called after each scenario execution.
-     * Finalizes the scenario and cleans up resources if necessary.
-     *
-     * @param scenario The Cucumber Scenario that has just completed executing.
-     */
     @After
     public void tearDown(Scenario scenario) {
         try {
-            // If the scenario passed, finalize it
             if (scenario.getStatus() == io.cucumber.java.Status.PASSED) {
                 PageCommonMethods pageCommonMethods = pageCommonMethodsThreadLocal.get();
                 if (pageCommonMethods != null) {
-                    pageCommonMethods.finalizeScenario(); // Perform finalization steps for the scenario
+                    pageCommonMethods.finalizeScenario();
                 }
             }
         } catch (Exception e) {
-            logger.error("Error during scenario teardown: {}", e.getMessage(), e); // Log any errors during teardown
+            logger.error("Error during scenario teardown: {}", e.getMessage(), e);
         } finally {
-            // If it's the last scenario in the feature, skip closing the browser
             if (isLastScenarioFeature) {
                 logger.info("Skipping browser closure for feature with @LastScenario tag.");
                 isFirstScenarioInFeature = false;
             } else {
-                closeBrowserResources(); // Always close browser resources for non-last scenarios
+                closeBrowserResources();
             }
         }
     }
 
-    /**
-     * Closes the browser, context, and page resources.
-     * This method is called during the teardown process.
-     */
     private void closeBrowserResources() {
         try {
-            Page page = pageThreadLocal.get(); // Retrieve the current page instance
+            Page page = pageThreadLocal.get();
             if (page != null && !page.isClosed()) {
-                page.close(); // Close the current page
-//                logger.info("Page closed."); // Log page closure
+                page.close();
             }
         } catch (Exception e) {
-            logger.error("Error closing the page: {}", e.getMessage(), e); // Log any errors during page closure
+            logger.error("Error closing the page: {}", e.getMessage(), e);
         } finally {
-            pageThreadLocal.remove(); // Remove page from thread-local storage
+            pageThreadLocal.remove();
         }
 
         try {
-            BrowserContext context = contextThreadLocal.get(); // Retrieve the browser context
+            BrowserContext context = contextThreadLocal.get();
             if (context != null) {
-                context.close(); // Close the browser context
-//                logger.info("Browser context closed."); // Log context closure
+                context.close();
             }
         } catch (Exception e) {
-            logger.error("Error closing the browser context: {}", e.getMessage(), e); // Log any errors during context closure
+            logger.error("Error closing the browser context: {}", e.getMessage(), e);
         } finally {
-            contextThreadLocal.remove(); // Remove context from thread-local storage
+            contextThreadLocal.remove();
         }
 
         try {
-            Browser browser = browserThreadLocal.get(); // Retrieve the browser instance
+            Browser browser = browserThreadLocal.get();
             if (browser != null) {
-                browser.close(); // Close the browser
-                logger.info("Browser closed."); // Log browser closure
+                browser.close();
+                logger.info("Browser closed.");
             }
         } catch (Exception e) {
-            logger.error("Error closing the browser: {}", e.getMessage(), e); // Log any errors during browser closure
+            logger.error("Error closing the browser: {}", e.getMessage(), e);
         } finally {
-            browserThreadLocal.remove(); // Remove browser from thread-local storage
+            browserThreadLocal.remove();
         }
     }
 
-    /**
-     * Retrieves the current Page instance.
-     *
-     * @return The current Page object.
-     * @throws IllegalStateException If the page is closed or not initialized.
-     */
     public static Page getPage() {
-        Page page = pageThreadLocal.get(); // Get the current page instance
+        Page page = pageThreadLocal.get();
         if (page == null || page.isClosed()) {
-            throw new IllegalStateException("The page is closed or not initialized."); // Raise error if page is uninitialized
+            throw new IllegalStateException("The page is closed or not initialized.");
         }
-        return page; // Return the page instance
+        return page;
     }
 
-    /**
-     * Retrieves the current Browser instance.
-     *
-     * @return The current Browser object.
-     * @throws IllegalStateException If the browser is not initialized.
-     */
     public static Browser getBrowser() {
-        Browser browser = browserThreadLocal.get(); // Get the current browser
+        Browser browser = browserThreadLocal.get();
         if (browser == null) {
-            throw new IllegalStateException("The browser is not initialized."); // Raise error if browser is uninitialized
+            throw new IllegalStateException("The browser is not initialized.");
         }
-        return browser; // Return the browser instance
+        return browser;
     }
 
-    /**
-     * Retrieves the current Scenario being executed.
-     *
-     * @return The current Scenario object.
-     */
     public static Scenario getCurrentScenario() {
-        return scenarioThreadLocal.get(); // Return the current scenario instance
+        return scenarioThreadLocal.get();
     }
 
-    /**
-     * Sets the current Scenario being executed.
-     *
-     * @param scenario The Cucumber Scenario to be set.
-     */
     public static void setCurrentScenario(Scenario scenario) {
-        scenarioThreadLocal.set(scenario); // Store the current scenario instance
+        scenarioThreadLocal.set(scenario);
     }
 }

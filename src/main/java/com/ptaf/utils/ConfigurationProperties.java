@@ -1,5 +1,9 @@
 package com.ptaf.utils;
 
+import com.ptaf.hooks.Hooks;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * ConfigurationProperties is a utility class that provides methods
  * for retrieving configuration properties from a YAML file.
@@ -7,6 +11,7 @@ package com.ptaf.utils;
  * and the browser type for the testing framework.
  */
 public class ConfigurationProperties {
+    private static final Logger logger = LoggerFactory.getLogger(ConfigurationProperties.class);
 
     /**
      * Retrieves the base URL from the YAML configuration using the specified key.
@@ -27,5 +32,30 @@ public class ConfigurationProperties {
     public static String getBrowser() {
         // Retrieve and return the browser type from the YAML file
         return (String) YamlReader.get("browser");
+    }
+
+    public static String getHeadlessMode() {
+        // Retrieve and return the headless mode value from the YAML file
+        return (String) YamlReader.get("headless");
+    }
+
+    public static String getYamlStoreLocation() {
+        // Retrieve and return the headless mode value from the YAML file
+        return (String) YamlReader.get("yamlStoreLocation");
+    }
+
+    public static String getExcelDocumentLocation() {
+        // Retrieve and return the headless mode value from the YAML file
+        return (String) YamlReader.get("excelDocumentLocation");
+    }
+
+    public static String getVideoCapture() {
+        // Retrieve and return the headless mode value from the YAML file
+        return (String) YamlReader.get("videoCapture");
+    }
+
+    public static String getValue(String value) {
+        // Retrieve and return the headless mode value from the YAML file
+        return (String) YamlReader.get(value);
     }
 }

@@ -1,53 +1,95 @@
 package com.ptaf.utils;
 
-import com.microsoft.playwright.Browser;
-import com.microsoft.playwright.BrowserType;
-import com.microsoft.playwright.Playwright;
+import com.microsoft.playwright.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.file.Paths;
 
 /**
  * BrowserFactory is a utility class for creating Playwright Browser instances.
  * It abstracts the browser creation logic, allowing users to easily instantiate
- * different types of browsers (Chrome, Firefox, WebKit) based on their requirements.
+ * different types of browsers (Chrome, Firefox, WebKit, Microsoft Edge) based on their requirements.
  */
 public class BrowserFactory {
+
+    private static final Logger logger = LoggerFactory.getLogger(BrowserFactory.class);
+    static String headlessMode = ConfigurationProperties.getHeadlessMode();
+    static String videoCapture = ConfigurationProperties.getVideoCapture(); // New property
+    private static final String VIDEO_DIR = "test-output/captured-videos";
+
 
     /**
      * Enum representing the supported browser types.
      */
     public enum BrowserTypeEnum {
-        CHROME,   // Google Chrome browser
-        FIREFOX,  // Mozilla Firefox browser
-        WEBKIT    // Apple WebKit browser (Safari)
+        CHROME,
+        FIREFOX,
+        WEBKIT,
+        EDGE
     }
 
     /**
      * Creates and launches a Playwright Browser instance based on the specified browser type.
      *
-     * @param browserTypeEnum The type of browser to create (CHROME, FIREFOX, WEBKIT).
-     * @return A Playwright Browser instance of the requested type.
-     * @throws IllegalArgumentException if an unsupported browser type is specified.
+     * @param browserTypeEnum The type of browser to create.
+     * @return A Playwright Browser instance.
      */
     public static Browser createBrowser(BrowserTypeEnum browserTypeEnum) {
-        Playwright playwright = Playwright.create(); // Initialize Playwright
-        BrowserType browserType; // Declare a BrowserType variable
+        Playwright playwright = Playwright.create();
+        return switch (browserTypeEnum) {
+            case CHROME -> {
+                BrowserType browserType = playwright.chromium();
+                yield launchBrowser(browserType);
+            }
+            case FIREFOX -> {
+                BrowserType browserType = playwright.firefox();
+                yield launchBrowser(browserType);
+            }
+            case WEBKIT -> {
+                BrowserType browserType = playwright.webkit();
+                yield launchBrowser(browserType);
+            }
+            case EDGE -> {
+                boolean headless = Boolean.parseBoolean(headlessMode);
+                logger.info("Launching Microsoft Edge with headless mode: {}", headless);
+                yield playwright.chromium().launch(new BrowserType.LaunchOptions()
+                        .setChannel("msedge")
+                        .setHeadless(headless));
+            }
+        };
+    }
 
-        // Determine the browser type to launch based on the provided enum value
-        switch (browserTypeEnum) {
-            case CHROME:
-                browserType = playwright.chromium(); // Get Chromium browser instance
-                break;
-            case FIREFOX:
-                browserType = playwright.firefox(); // Get Firefox browser instance
-                break;
-            case WEBKIT:
-                browserType = playwright.webkit(); // Get WebKit browser instance
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported browser type"); // Handle unsupported types
+    /**
+     * Launches the specified browser type with the configured headless mode.
+     *
+     * @param browserType The BrowserType instance.
+     * @return The launched Browser.
+     */
+    private static Browser launchBrowser(BrowserType browserType) {
+        boolean headless = Boolean.parseBoolean(headlessMode);
+        logger.info("Launching browser: {} with headless mode: {}", browserType.name().toUpperCase(), headless);
+        return browserType.launch(new BrowserType.LaunchOptions().setHeadless(headless));
+    }
+
+    /**
+     * Creates a browser context with optional video capture.
+     *
+     * @param browser The Browser instance.
+     * @return A BrowserContext with or without video enabled.
+     */
+    public static BrowserContext createContextWithVideo(Browser browser) {
+        boolean recordVideo = Boolean.parseBoolean(videoCapture);
+        Browser.NewContextOptions contextOptions = new Browser.NewContextOptions();
+
+        if (recordVideo) {
+            logger.info("Video capture enabled.");
+            contextOptions.setRecordVideoDir(Paths.get(VIDEO_DIR))
+                    .setRecordVideoSize(1280, 720);
+        } else {
+            logger.info("Video capture disabled.");
         }
 
-        // Launch the browser in headless mode (set to false for visible mode)
-        Browser browser = browserType.launch(new BrowserType.LaunchOptions().setHeadless(false));
-        return browser; // Return the launched browser instance
+        return browser.newContext(contextOptions);
     }
 }
