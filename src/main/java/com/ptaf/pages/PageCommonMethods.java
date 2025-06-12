@@ -175,7 +175,7 @@ public class PageCommonMethods {
 
     /**
      * Takes a screenshot of the specified element on the current Playwright Page.
-     *
+     * <p>
      * This method constructs the locator for the specified element using the provided
      * logical name and locator string. It then delegates the action of taking
      * a screenshot to a helper method and finalizes the scenario by taking
@@ -203,11 +203,11 @@ public class PageCommonMethods {
      * Initiates a file download from the given page by interacting with a specified element
      * and saves the downloaded file to the provided directory with a custom suffix.
      *
-     * @param page     Playwright Page object representing the current browser page.
-     * @param element  The element name defined in the locator configuration (e.g., YAML key).
-     * @param locator  The locator type used to identify the element (e.g., XPATH, CSS).
-     * @param value    The directory path where the downloaded file should be saved.
-     * @param name     A custom suffix or name to append to the downloaded file name.
+     * @param page    Playwright Page object representing the current browser page.
+     * @param element The element name defined in the locator configuration (e.g., YAML key).
+     * @param locator The locator type used to identify the element (e.g., XPATH, CSS).
+     * @param value   The directory path where the downloaded file should be saved.
+     * @param name    A custom suffix or name to append to the downloaded file name.
      */
     public void download(Page page, String element, String locator, String value, String name) {
 
@@ -383,11 +383,6 @@ public class PageCommonMethods {
      */
     public Locator getElement_locator(Page page, String iFrame, String iFrame_2, String iFrame_3, String element, String locator) {
         return elementAction.getLocator(iFrame, iFrame_2, iFrame_3, element, locator, page, null); // Retrieve the locator for the specified element
-    }
-
-    public String get_element_string_value(Page page,String element, String locator){
-        Locator final_locator = getElement_locator(page, null, null, null, element, locator);
-        return final_locator.inputValue();
     }
 
     /**
@@ -662,10 +657,10 @@ public class PageCommonMethods {
     /**
      * Initiates a file chooser for the upload feature.
      *
-     * @param page    The current Playwright Page.
+     * @param page     The current Playwright Page.
      * @param fileName The name of the file to upload.
-     * @param element The logical name of the file input element.
-     * @param locator The locator string used to identify the file input.
+     * @param element  The logical name of the file input element.
+     * @param locator  The locator string used to identify the file input.
      */
     public void file_chooser_for_upload(Page page, String fileName, String element, String locator) {
         elementAction.uploadFile(page, fileName, element, locator); // Utilize the element action to upload the specified file
@@ -943,13 +938,13 @@ public class PageCommonMethods {
 
     /**
      * Finalizes the current scenario and captures a screenshot if no failures occurred.
-     *
+     * <p>
      * This method checks the status of the scenario being executed.
      * If the scenario has not failed, it will invoke the utility method
      * to capture a screenshot of the specified element or area represented
      * by the given target locator.
      *
-     * @param page The current Playwright Page for which to finalize the scenario.
+     * @param page          The current Playwright Page for which to finalize the scenario.
      * @param targetLocator A string representing the locator of the target element
      *                      from which to capture the screenshot.
      */

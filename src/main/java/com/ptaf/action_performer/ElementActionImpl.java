@@ -161,19 +161,71 @@ public class ElementActionImpl extends PageHelper implements ElementAction {
         // Delegates with null page context for frame-specific assertion
         return assertElementText(null, element, key, expectedText, frameLocator);
     }
+    /**
+     * Performs a specified action on an element located on the current Page and returns a string result.
+     * This is typically used for actions like "gettext", "getvalue", or "getattribute" where the action
+     * returns a value instead of just performing an interaction.
+     *
+     * @param page    The Playwright Page instance where the action should be executed.
+     * @param action  The name of the action to perform (e.g., "gettext", "getattribute").
+     * @param element The logical name of the element defined in the configuration (e.g., YAML).
+     * @param key     The key used to locate the specific variant of the element.
+     * @param value   An optional parameter used by some actions (e.g., attribute name for "getattribute").
+     * @return        The result of the action as a String, or null if the locator was not found or an exception occurred.
+     */
     @Override
     public String performActionPageWithReturn(Page page, String action, String element, String key, String value) {
         try {
+            // Get the locator for the given element and key in the context of the provided page
             Locator targetLocator = getLocatorBasedOnPage(page, element, key);
+
+            // If the locator cannot be resolved, log the error and return null
             if (targetLocator == null) {
                 logger.error("Locator not found for element: {} with key: {}", element, key);
+                return null;
+            }
+
+            // Wait until the element is ready for interaction (e.g., visible or attached to the DOM)
+            actionPerformer.waitForLocator(targetLocator);
+
+            // Perform the action and return the result (e.g., text content, value, attribute, etc.)
+            return actionPerformer.performActionWithReturn(page, action, targetLocator, value);
+
+        } catch (Exception e) {
+            // Log any exception that occurred during execution and return null
+            logger.error("Exception in performActionPageWithReturn for element '{}' and action '{}':", element, action, e);
+            return null;
+        }
+    }
+
+    /**
+     * Performs the specified action on an element inside nested iframes within a Page context,
+     * and returns a string result (if the action provides one, like "gettext" or "getattribute").
+     *
+     * @param page         The Playwright Page instance to perform the action on.
+     * @param iFrame       The first-level iframe name or ID.
+     * @param iFrame_2     The second-level nested iframe (optional).
+     * @param iFrame_3     The third-level nested iframe (optional).
+     * @param action       The action to perform (e.g., "gettext", "getvalue").
+     * @param element      The identifier of the element on which the action is to be performed.
+     * @param key          The key used to locate the element (from config/YAML).
+     * @param value        The value to pass to the action, if needed (e.g., attribute name).
+     * @param frameLocator Not used here (should be null); included for signature consistency.
+     * @return             A string result from the action, or null if action fails or produces no output.
+     */
+    @Override
+    public String performActionPageFrameWithReturn(Page page, String iFrame, String iFrame_2, String iFrame_3, String action, String element, String key, String value, FrameLocator frameLocator) {
+        try {
+            Locator targetLocator = getLocatorBasedOnPageFrame(page, iFrame, iFrame_2, iFrame_3, element, key);
+            if (targetLocator == null) {
+                logger.error("Locator not found for nested frame element: {} with key: {}", element, key);
                 return null;
             }
 
             actionPerformer.waitForLocator(targetLocator);
             return actionPerformer.performActionWithReturn(page, action, targetLocator, value);
         } catch (Exception e) {
-            logger.error("Exception in performActionPageWithReturn for element '{}' and action '{}':", element, action, e);
+            logger.error("Exception in performActionPageFrameWithReturn for element '{}' and action '{}':", element, action, e);
             return null;
         }
     }

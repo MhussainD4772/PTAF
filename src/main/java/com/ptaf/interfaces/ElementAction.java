@@ -68,6 +68,9 @@ public interface ElementAction {
      */
     boolean performActionPageFrame(Page page, String iFrame, String iFrame_2, String iFrame_3, String action, String element, String key, String value, FrameLocator frameLocator);
 
+    String performActionPageFrameWithReturn(Page page, String iFrame, String iFrame_2, String iFrame_3, String action, String element, String key, String value, FrameLocator frameLocator);
+
+
     /**
      * Retrieves the ElementHandle for a specified element on the main page.
      *
