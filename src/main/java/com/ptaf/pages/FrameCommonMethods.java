@@ -202,14 +202,14 @@ public class FrameCommonMethods {
     /**
      * Initiates a file download from a web page and saves it to a specified location.
      *
-     * @param page      Playwright Page object representing the browser page.
-     * @param iFrame    First-level iFrame identifier (can be null if not applicable).
-     * @param iFrame_2  Second-level iFrame identifier (nested frame, if applicable).
-     * @param iFrame_3  Third-level iFrame identifier (deepest nested frame, if applicable).
-     * @param element   The element name as defined in locator configuration (e.g., YAML).
-     * @param locator   The type of locator to be used (e.g., XPATH, CSS, etc.).
-     * @param value     The directory path where the downloaded file should be saved.
-     * @param name      A custom suffix or name to append to the downloaded file.
+     * @param page     Playwright Page object representing the browser page.
+     * @param iFrame   First-level iFrame identifier (can be null if not applicable).
+     * @param iFrame_2 Second-level iFrame identifier (nested frame, if applicable).
+     * @param iFrame_3 Third-level iFrame identifier (deepest nested frame, if applicable).
+     * @param element  The element name as defined in locator configuration (e.g., YAML).
+     * @param locator  The type of locator to be used (e.g., XPATH, CSS, etc.).
+     * @param value    The directory path where the downloaded file should be saved.
+     * @param name     A custom suffix or name to append to the downloaded file.
      */
     public void download(Page page, String iFrame, String iFrame_2, String iFrame_3,
                          String element, String locator, String value, String name) {
@@ -307,9 +307,15 @@ public class FrameCommonMethods {
      * @param element  The logical name of the element to extract text from.
      * @param locator  The locator string used to identify the element.
      */
-    public void gettext(Page page, String iFrame, String iFrame_2, String iFrame_3, String element, String locator) {
-        performAction("gettext", page, iFrame, iFrame_2, iFrame_3, element, locator, null); // Perform action to get text
+    public String gettext(Page page, String iFrame, String iFrame_2, String iFrame_3, String element, String locator) {
+        String value = getStringValue("gettext", page, iFrame, iFrame_2, iFrame_3, element, locator, null); // Perform action to get text
+        if (value == null || value.trim().isEmpty()) {
+            System.out.println("There is no text value for element: " + element + ", locator: " + locator);
+        }
+
+        return value;
     }
+
 
     /**
      * Gets the text content of the specified element within nested iframes and contains with found text content with locator value.
@@ -768,7 +774,7 @@ public class FrameCommonMethods {
         return elementAction.getLocator(iFrame, iFrame_2, iFrame_3, element, locator, page, null); // Retrieve the locator for the specified element
     }
 
-    public String get_frame_element_string_value(Page page,String iFrame, String iFrame_2, String iFrame_3, String element, String locator){
+    public String get_frame_element_string_value(Page page, String iFrame, String iFrame_2, String iFrame_3, String element, String locator) {
         Locator final_locator = getElement_locator(page, iFrame, iFrame_2, iFrame_3, element, locator);
         return final_locator.inputValue();
     }
@@ -806,6 +812,65 @@ public class FrameCommonMethods {
                 handleFailure(page, action, element); // Handle failure if action is unsuccessful
             }
         });
+    }
+
+    /**
+     * Executes an action and returns its string result if applicable.
+     * Does not affect the existing performAction method logic.
+     *
+     * @param action   The action to be performed (e.g., "click", "fill").
+     * @param page     The current Playwright Page.
+     * @param iFrame   The identifier for the outer iframe.
+     * @param iFrame_2 The identifier for the nested iframe.
+     * @param iFrame_3 The identifier for the further nested iframe.
+     * @param element  The logical name of the element involved in the action.
+     * @param locator  The locator string used to identify the element.
+     * @param value    Any additional value needed for the action, if required.
+     */
+    private String getStringValue(String action, Page page, String iFrame, String iFrame_2, String iFrame_3, String element, String locator, String value) {
+        final String[] result = {null};
+        executeStep(() -> {
+            // Perform the action and capture the result
+            result[0] = elementAction.performActionPageFrameWithReturn(page, iFrame, iFrame_2, iFrame_3, action, element, locator, value, null);
+
+            // Handle failure if result is expected but null
+            if (result[0] == null && actionRequiresResult(action)) {
+                handleFailure(page, action, element);
+            } else if (result[0] != null && !result[0].isEmpty()) {
+                logger.info("Action '{}' returned result: {}", action, result[0]);
+            }
+        });
+        return result[0];
+    }
+
+    /**
+     * Determines whether the specified action is expected to return a result.
+     * Used to differentiate between validation/assertion actions and void-type actions.
+     *
+     * @param action The name of the action.
+     * @return true if the action typically returns a value and should not be null.
+     */
+    private boolean actionRequiresResult(String action) {
+        switch (action.toLowerCase()) {
+            case "gettext":
+            case "getvalue":
+            case "getattribute":
+            case "hastext":
+            case "hasclass":
+            case "hasequalvalue":
+            case "isempty":
+            case "isvisible":
+            case "isenabled":
+            case "ischecked":
+            case "isdisabled":
+            case "exists":
+            case "not_exists":
+            case "waitfortext":
+            case "waitforvalue":
+                return true;
+            default:
+                return false;
+        }
     }
 
     /**

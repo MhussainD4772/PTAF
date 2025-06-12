@@ -4,7 +4,7 @@ Feature: Automation Panda Page
     Given we navigate to panda_url url
     Then we click on page panda_page locator home_tab
     And we capture screenshot on page panda_page locator body name "home_tab"
-    And we click on page panda_page locator about_tab
+    And we click on page panda_page locator about_ta
     And we capture screenshot on page panda_page locator body name "about_tab"
     When we click on page panda_page locator contact_tab
     And we capture screenshot on page panda_page locator body name "contact_tab"

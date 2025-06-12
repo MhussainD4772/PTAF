@@ -1,6 +1,7 @@
 package com.ptaf.stepdefinitions;
 
 import com.microsoft.playwright.Page;
+import com.microsoft.playwright.options.AriaRole;
 import com.ptaf.hooks.Hooks;
 import com.ptaf.pages.FrameCommonMethods;
 import com.ptaf.pages.PageCommonMethods;
@@ -10,7 +11,9 @@ import io.cucumber.java.en.When;
 
 public class NewPageCommonSteps {
     private final Page page = Hooks.getPage();
-    private final Page new_page = page.waitForPopup(() -> page.getByLabel("Please complete the previous").click());
+    private final Page new_page = page.waitForPopup(() -> {
+        page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("New Tab")).click();
+    });
     private final PageCommonMethods pageCommonMethods = new PageCommonMethods(new_page);
     private final FrameCommonMethods frameCommonMethods = new FrameCommonMethods(new_page);
     private static final String plad_frame = "iframe[title=\"Plaid Link\"]";
@@ -104,7 +107,7 @@ public class NewPageCommonSteps {
         pageCommonMethods.contain(new_page, element, locator, value);
     }
 
-    @Then("^we get text on new page(.*?) locator (.*?)$")
+    @Then("^we get text on new page (.*?) locator (.*?)$")
     public void weGetTextOnPage(String element, String locator) {
         pageCommonMethods.gettext(new_page, element, locator);
     }
