@@ -1,3 +1,7 @@
+
+# ==================================
+# UI CONFIGURATION
+# ==================================
 # Browser configuration for test execution
 browser: "chrome"  # Specifies the browser to use (CHROME, FIREFOX, WEBKIT, etc.)
 
@@ -19,3 +23,30 @@ connectsQa1Url: "https://vsargwebqa01.myfnb.us:5048/"
 google_url: "https://www.google.com/"
 panda_url: "https://automationpanda.com/2021/12/29/want-to-practice-test-automation-try-these-demo-sites/"
 tool_qa_url: "https://demoqa.com/"
+
+# ==================================
+# DATABASE CONFIGURATION
+# ==================================
+database:
+  connection_url: "jdbc:postgresql://localhost:5432/lime-of-time-database"
+  username: "postgres"
+  # IMPORTANT: The password will be read from an environment variable named 'DB_PASSWORD'
+  # Do not store the password here in plain text.
+  password_env_variable: "DB_PASSWORD"
+
+# ==================================
+# API SERVICES CONFIGURATION
+# ==================================
+api_services:
+  # Example for a public test API like JSONPlaceholder
+  jsonplaceholder:
+    base_url: "https://jsonplaceholder.typicode.com"
+    # This service requires no authentication, so we leave it blank
+    auth_token_env: ""
+
+  # Example for an internal service that requires authentication
+  internal_crm:
+    base_url: "https://api.internal-crm.com/v2"
+    # IMPORTANT: We store the NAME of the environment variable, not the token itself.
+    # The framework will read the actual token from the system's environment.
+    auth_token_env: "CRM_API_TOKEN"

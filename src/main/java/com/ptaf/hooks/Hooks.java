@@ -1,10 +1,12 @@
 package com.ptaf.hooks;
 
-import com.ptaf.pages.PageCommonMethods;
-import com.ptaf.utils.BrowserFactory;
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Page;
+import com.ptaf.api.handlers.ApiRequestHandler;
+import com.ptaf.db.handlers.DatabaseHandler;
+import com.ptaf.pages.PageCommonMethods;
+import com.ptaf.utils.BrowserFactory;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
@@ -69,15 +71,19 @@ public class Hooks {
     @After
     public void tearDown(Scenario scenario) {
         try {
-            if (scenario.getStatus() == io.cucumber.java.Status.PASSED) {
-                PageCommonMethods pageCommonMethods = pageCommonMethodsThreadLocal.get();
-                if (pageCommonMethods != null) {
-                    pageCommonMethods.finalizeScenario();
-                }
+            if (scenario.isFailed()) {
+                // Your failure handling logic can go here, e.g., taking screenshots.
             }
         } catch (Exception e) {
             logger.error("Error during scenario teardown: {}", e.getMessage(), e);
         } finally {
+
+            ApiRequestHandler.disposeContext();
+
+            // Safely close the database connection for the current thread.
+            DatabaseHandler.closeConnection();
+
+            // Your existing browser teardown logic follows.
             if (isLastScenarioFeature) {
                 logger.info("Skipping browser closure for feature with @LastScenario tag.");
                 isFirstScenarioInFeature = false;
