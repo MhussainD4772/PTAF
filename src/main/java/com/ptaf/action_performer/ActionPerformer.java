@@ -48,54 +48,112 @@ public class ActionPerformer {
     public String performAction(Page page, String action, Locator targetLocator, String value) {
         try {
             switch (action.toLowerCase()) {
-                case "click": targetLocator.click(); return null;
-                case "fill": targetLocator.fill(value); return null;
-                case "select": targetLocator.selectOption(value); return null;
-                case "selectmultiple": targetLocator.selectOption(value.split(",")); return null;
-                case "check": targetLocator.check(); return null;
-                case "uncheck": targetLocator.uncheck(); return null;
-                case "hover": targetLocator.hover(); return null;
-                case "type": targetLocator.type(value); return null;
-                case "press": targetLocator.press(value); return null;
-                case "dblclick": targetLocator.dblclick(); return null;
-                case "rightclick": targetLocator.click(new Locator.ClickOptions().setButton(MouseButton.valueOf("right"))); return null;
-                case "tap": targetLocator.tap(); return null;
-                case "input": targetLocator.evaluate("(element, val) => element.value = val", value); return null;
-                case "screenshot": targetLocator.screenshot(new Locator.ScreenshotOptions().setPath(Paths.get(value))); return null;
-                case "scroll": targetLocator.evaluate("element => element.scrollIntoView({ behavior: 'smooth', block: 'center' })"); return null;
-                case "focus": targetLocator.focus(); return null;
-                case "blur": targetLocator.evaluate("element => element.blur()"); return null;
-                case "clear": targetLocator.clear(); return null;
-                case "drag": Locator target = targetLocator.page().locator(value); targetLocator.dragTo(target); return null;
-                case "dragstart": targetLocator.dispatchEvent("dragstart"); return null;
-                case "dragend": targetLocator.dispatchEvent("dragend"); return null;
+                // =============== SINGLE-ELEMENT ACTIONS (.first() added for backward compatibility) ===============
+                case "click": targetLocator.first().click(); return null;
+                case "fill": targetLocator.first().fill(value); return null;
+                case "select": targetLocator.first().selectOption(value); return null;
+                case "selectmultiple": targetLocator.first().selectOption(value.split(",")); return null;
+                case "check": targetLocator.first().check(); return null;
+                case "uncheck": targetLocator.first().uncheck(); return null;
+                case "hover": targetLocator.first().hover(); return null;
+                case "type": targetLocator.first().type(value); return null;
+                case "press": targetLocator.first().press(value); return null;
+                case "dblclick": targetLocator.first().dblclick(); return null;
+                case "rightclick": targetLocator.first().click(new Locator.ClickOptions().setButton(MouseButton.RIGHT)); return null;
+                case "tap": targetLocator.first().tap(); return null;
+                case "input": targetLocator.first().evaluate("(element, val) => element.value = val", value); return null;
+                case "screenshot": targetLocator.first().screenshot(new Locator.ScreenshotOptions().setPath(Paths.get(value))); return null;
+                case "scroll": targetLocator.first().evaluate("element => element.scrollIntoView({ behavior: 'smooth', block: 'center' })"); return null;
+                case "focus": targetLocator.first().focus(); return null;
+                case "blur": targetLocator.first().evaluate("element => element.blur()"); return null;
+                case "clear": targetLocator.first().clear(); return null;
+                case "drag":
+                    Locator target = targetLocator.page().locator(value).first();
+                    targetLocator.first().dragTo(target);
+                    return null;
+                case "dragstart": targetLocator.first().dispatchEvent("dragstart"); return null;
+                case "dragend": targetLocator.first().dispatchEvent("dragend"); return null;
                 case "uploadfile":
-                case "selectfile": targetLocator.setInputFiles(Paths.get(value)); return null;
-                case "file_chooser_for_upload": page.waitForFileChooser(() -> click(targetLocator)); return null;
-                case "getattribute": return targetLocator.getAttribute(value);
-                case "setattribute": targetLocator.evaluate("(el, val) => el.setAttribute('value', val)", value); return null;
-                case "removeattribute": targetLocator.evaluate("(el, attr) => el.removeAttribute(attr)", value); return null;
-                case "gettext": return targetLocator.textContent();
-                case "get_and_contain_text": String getText = targetLocator.textContent(); assertCondition(getText.contains(getText), "Element does not contain expected text."); return getText;
-                case "getvalue": return targetLocator.inputValue();
-                case "hasvalue": String currentValue = targetLocator.inputValue(); assertCondition(currentValue.equals(value), "Expected: " + value + ", but found: " + currentValue); return currentValue;
-                case "isvisible": boolean isVisible = targetLocator.isVisible(); assertCondition(isVisible, "Element is not visible."); return String.valueOf(isVisible);
-                case "isenabled": boolean isEnabled = targetLocator.isEnabled(); assertCondition(isEnabled, "Element is not enabled."); return String.valueOf(isEnabled);
-                case "ischecked": boolean isChecked = targetLocator.isChecked(); assertCondition(isChecked, "Element is not checked."); return String.valueOf(isChecked);
-                case "isdisabled": boolean isDisabled = targetLocator.isDisabled(); assertCondition(isDisabled, "Element is not disabled."); return String.valueOf(isDisabled);
-                case "ishidden": boolean isHidden = targetLocator.isHidden(); assertCondition(isHidden, "Element is not hidden."); return String.valueOf(isHidden);
-                case "exists": boolean exists = targetLocator.count() > 0; assertCondition(exists, "Element does not exist."); return String.valueOf(exists);
-                case "not_exists": boolean notExists = targetLocator.count() == 0; assertCondition(notExists, "Element exists but should not."); return String.valueOf(notExists);
-                case "hastext": String locatorText = targetLocator.textContent(); assertCondition(locatorText.contains(value), "Text mismatch."); return locatorText;
-                case "hasclass": boolean hasClass = targetLocator.getAttribute("class").contains(value); assertCondition(hasClass, "Class mismatch."); return String.valueOf(hasClass);
-                case "hasequalvalue": String actualValue = targetLocator.inputValue(); assertCondition(actualValue.equals(value), "Value mismatch."); return actualValue;
-                case "isempty": String inputValue = targetLocator.inputValue(); assertCondition(inputValue.isEmpty(), "Element is not empty."); return inputValue;
-                case "waitforelement": targetLocator.waitFor(); return null;
-                case "waitforstate": targetLocator.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.valueOf(value.toUpperCase()))); return null;
-                case "waitfortext": targetLocator.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE)); if (!targetLocator.textContent().contains(value)) throw new AssertionError("Text not found: " + value); return targetLocator.textContent();
-                case "waitforvalue": targetLocator.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE)); if (!targetLocator.inputValue().equals(value)) throw new AssertionError("Value mismatch."); return targetLocator.inputValue();
-                case "evaluate": targetLocator.evaluate(value); return null;
-                default: throw new IllegalArgumentException("Unknown action: " + action);
+                case "selectfile": targetLocator.first().setInputFiles(Paths.get(value)); return null;
+                case "file_chooser_for_upload": page.waitForFileChooser(() -> click(targetLocator.first())); return null;
+                case "setattribute": targetLocator.first().evaluate("(el, val) => el.setAttribute('value', val)", value); return null;
+                case "removeattribute": targetLocator.first().evaluate("(el, attr) => el.removeAttribute(attr)", value); return null;
+                case "evaluate": targetLocator.first().evaluate(value); return null;
+                case "waitforelement": targetLocator.first().waitFor(); return null;
+                case "waitforstate": targetLocator.first().waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.valueOf(value.toUpperCase()))); return null;
+
+
+                // =============== GETTER/VALIDATION ACTIONS (mostly .first()) ===============
+                case "getattribute": return targetLocator.first().getAttribute(value);
+                case "gettext": return targetLocator.first().textContent();
+                case "get_and_contain_text":
+                    String getText = targetLocator.first().textContent();
+                    assertCondition(getText.contains(getText), "Element does not contain expected text.");
+                    return getText;
+                case "getvalue": return targetLocator.first().inputValue();
+                case "hasvalue":
+                    String currentValue = targetLocator.first().inputValue();
+                    assertCondition(currentValue.equals(value), "Expected: " + value + ", but found: " + currentValue);
+                    return currentValue;
+                case "isvisible":
+                    boolean isVisible = targetLocator.first().isVisible();
+                    assertCondition(isVisible, "Element is not visible.");
+                    return String.valueOf(isVisible);
+                case "isenabled":
+                    boolean isEnabled = targetLocator.first().isEnabled();
+                    assertCondition(isEnabled, "Element is not enabled.");
+                    return String.valueOf(isEnabled);
+                case "ischecked":
+                    boolean isChecked = targetLocator.first().isChecked();
+                    assertCondition(isChecked, "Element is not checked.");
+                    return String.valueOf(isChecked);
+                case "isdisabled":
+                    boolean isDisabled = targetLocator.first().isDisabled();
+                    assertCondition(isDisabled, "Element is not disabled.");
+                    return String.valueOf(isDisabled);
+                case "ishidden":
+                    boolean isHidden = targetLocator.first().isHidden();
+                    assertCondition(isHidden, "Element is not hidden.");
+                    return String.valueOf(isHidden);
+                case "hastext":
+                    String locatorText = targetLocator.first().textContent();
+                    assertCondition(locatorText.contains(value), "Text mismatch.");
+                    return locatorText;
+                case "hasclass":
+                    boolean hasClass = targetLocator.first().getAttribute("class").contains(value);
+                    assertCondition(hasClass, "Class mismatch.");
+                    return String.valueOf(hasClass);
+                case "hasequalvalue":
+                    String actualValue = targetLocator.first().inputValue();
+                    assertCondition(actualValue.equals(value), "Value mismatch.");
+                    return actualValue;
+                case "isempty":
+                    String inputValue = targetLocator.first().inputValue();
+                    assertCondition(inputValue.isEmpty(), "Element is not empty.");
+                    return inputValue;
+                case "waitfortext":
+                    targetLocator.first().waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
+                    if (!targetLocator.first().textContent().contains(value)) throw new AssertionError("Text not found: " + value);
+                    return targetLocator.first().textContent();
+                case "waitforvalue":
+                    targetLocator.first().waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE));
+                    if (!targetLocator.first().inputValue().equals(value)) throw new AssertionError("Value mismatch.");
+                    return targetLocator.first().inputValue();
+
+
+                // =============== MULTI-ELEMENT ACTIONS (NO .first()) ===============
+                case "exists":
+                    boolean exists = targetLocator.count() > 0;
+                    assertCondition(exists, "Element does not exist.");
+                    return String.valueOf(exists);
+                case "not_exists":
+                    boolean notExists = targetLocator.count() == 0;
+                    assertCondition(notExists, "Element exists but should not.");
+                    return String.valueOf(notExists);
+
+
+                default:
+                    throw new IllegalArgumentException("Unknown action: " + action);
             }
         } catch (Exception e) {
             logger.error("Error while performing action: {} for Target Locator {}", action, targetLocator, e);
@@ -105,7 +163,8 @@ public class ActionPerformer {
 
     private void click(Locator targetLocator) {
         try {
-            targetLocator.click();
+            // This is only called by file_chooser_for_upload, which also needs .first()
+            targetLocator.first().click();
         } catch (Exception e) {
             logger.error("Error while clicking on target locator: {}", e.getMessage());
             throw new RuntimeException("Click action failed: " + e.getMessage(), e);
@@ -120,7 +179,8 @@ public class ActionPerformer {
 
     public void waitForLocator(Locator locator) {
         try {
-            locator.waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(60000.0));
+            // Wait for the first element matching the locator to be visible
+            locator.first().waitFor(new Locator.WaitForOptions().setState(WaitForSelectorState.VISIBLE).setTimeout(60000.0));
         } catch (Exception e) {
             logger.error("Failed to wait for the element to be displayed", e);
         }
