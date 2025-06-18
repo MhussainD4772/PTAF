@@ -3,7 +3,7 @@ package com.ptaf.api.handlers;
 import com.microsoft.playwright.APIRequest;
 import com.microsoft.playwright.APIRequestContext;
 import com.microsoft.playwright.Playwright;
-import com.ptaf.utils.ConfigurationProperties;
+import com.ptaf.ui.utils.ConfigurationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

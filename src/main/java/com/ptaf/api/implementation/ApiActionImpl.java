@@ -5,7 +5,7 @@ import com.ptaf.api.handlers.ApiRequestHandler;
 import com.ptaf.api.interfaces.ApiAction;
 import com.ptaf.api.performer.ApiActionPerformer;
 import com.ptaf.api.wrapper.ApiResponseWrapper;
-import com.ptaf.utils.YamlReader;
+import com.ptaf.ui.utils.YamlReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

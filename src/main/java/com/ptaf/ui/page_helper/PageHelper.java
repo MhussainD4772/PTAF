@@ -1,7 +1,7 @@
-package com.ptaf.page_helper;
+package com.ptaf.ui.page_helper;
 
 import com.microsoft.playwright.Page;
-import com.ptaf.handlers.LocatorHandler;
+import com.ptaf.ui.handlers.LocatorHandler;
 
 /**
  * PageHelper class acts as a utility to assist with operations on a Playwright Page object.

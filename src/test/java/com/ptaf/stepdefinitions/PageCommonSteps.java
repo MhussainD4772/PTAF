@@ -1,11 +1,8 @@
 package com.ptaf.stepdefinitions;
 
-import com.microsoft.playwright.FrameLocator;
 import com.microsoft.playwright.Page;
-import com.microsoft.playwright.options.AriaRole;
-import com.ptaf.hooks.Hooks;
-import com.ptaf.pages.PageCommonMethods;
-import com.ptaf.utils.ConfigurationProperties;
+import com.ptaf.ui.hooks.Hooks;
+import com.ptaf.ui.pages.PageCommonMethods;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;

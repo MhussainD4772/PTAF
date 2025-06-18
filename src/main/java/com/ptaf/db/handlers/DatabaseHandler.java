@@ -1,6 +1,6 @@
 package com.ptaf.db.handlers;
 
-import com.ptaf.utils.ConfigurationProperties;
+import com.ptaf.ui.utils.ConfigurationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,4 +1,4 @@
-package com.ptaf.utils;
+package com.ptaf.ui.utils;
 
 import org.yaml.snakeyaml.Yaml;
 

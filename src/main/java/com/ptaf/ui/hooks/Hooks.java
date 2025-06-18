@@ -1,12 +1,13 @@
-package com.ptaf.hooks;
+package com.ptaf.ui.hooks;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Page;
 import com.ptaf.api.handlers.ApiRequestHandler;
 import com.ptaf.db.handlers.DatabaseHandler;
-import com.ptaf.pages.PageCommonMethods;
-import com.ptaf.utils.BrowserFactory;
+import com.ptaf.ui.pages.PageCommonMethods;
+import com.ptaf.ui.utils.ConfigurationProperties;
+import com.ptaf.ui.utils.BrowserFactory;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
@@ -40,7 +41,7 @@ public class Hooks {
         }
 
         try {
-            String browserName = com.ptaf.utils.ConfigurationProperties.getBrowser();
+            String browserName = ConfigurationProperties.getBrowser();
             BrowserFactory.BrowserTypeEnum browserTypeEnum = switch (browserName.toUpperCase()) {
                 case "CHROME" -> BrowserFactory.BrowserTypeEnum.CHROME;
                 case "FIREFOX" -> BrowserFactory.BrowserTypeEnum.FIREFOX;

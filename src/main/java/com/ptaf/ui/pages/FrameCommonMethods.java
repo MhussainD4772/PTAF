@@ -1,14 +1,13 @@
-package com.ptaf.pages;
+package com.ptaf.ui.pages;
 
 import com.microsoft.playwright.Download;
 import com.microsoft.playwright.ElementHandle;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
-import com.ptaf.action_performer.ElementActionImpl;
-import com.ptaf.hooks.Hooks;
-import com.ptaf.interfaces.ElementAction;
-import com.ptaf.page_helper.PageHelper;
-import com.ptaf.utils.ScenarioUtil;
+import com.ptaf.ui.action_performer.ElementActionImpl;
+import com.ptaf.ui.hooks.Hooks;
+import com.ptaf.ui.interfaces.ElementAction;
+import com.ptaf.ui.utils.ScenarioUtil;
 import io.cucumber.java.Scenario;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

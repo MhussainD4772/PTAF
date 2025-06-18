@@ -17,7 +17,7 @@ import io.cucumber.testng.CucumberOptions;
                 "timeline:test-output-thread/"  // Generate a timeline of test execution
         },
         monochrome = true,  // Improve readability of console output
-        glue = {"com/ptaf/stepdefinitions", "com/ptaf/hooks"},  // Path to the step definitions
+        glue = {"com/ptaf/stepdefinitions", "com/ptaf/ui/hooks"},  // Path to the step definitions
         features = {"src/test/resources/features"}  // Path to the feature files
 )
 public class ParallelRun extends AbstractTestNGCucumberTests {

@@ -1,4 +1,4 @@
-package com.ptaf.action_performer;
+package com.ptaf.ui.action_performer;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;

@@ -17,7 +17,7 @@ import io.cucumber.junit.CucumberOptions;
         // Specify the location of the feature files
         features = "src/test/resources/features",
         // Specify the packages containing the step definitions and hooks
-        glue = {"com/ptaf/stepdefinitions", "com/ptaf/hooks"}
+        glue = {"com/ptaf/stepdefinitions", "com/ptaf/ui/hooks"}
 )
 public class TestRunner {
         // This class is intentionally empty. It serves as an entry point for the Cucumber tests.

@@ -1,6 +1,5 @@
-package com.ptaf.utils;
+package com.ptaf.ui.utils;
 
-import com.ptaf.hooks.Hooks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

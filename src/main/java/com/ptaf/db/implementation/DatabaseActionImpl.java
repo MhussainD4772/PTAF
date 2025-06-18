@@ -3,7 +3,7 @@ package com.ptaf.db.implementation;
 import com.ptaf.db.handlers.DatabaseHandler;
 import com.ptaf.db.interfaces.DatabaseAction;
 import com.ptaf.db.performer.DatabaseActionPerformer;
-import com.ptaf.utils.YamlReader;
+import com.ptaf.ui.utils.YamlReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

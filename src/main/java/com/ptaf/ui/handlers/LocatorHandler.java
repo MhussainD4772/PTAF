@@ -1,4 +1,4 @@
-package com.ptaf.handlers;
+package com.ptaf.ui.handlers;
 
 import com.microsoft.playwright.FrameLocator;
 import com.microsoft.playwright.Locator;

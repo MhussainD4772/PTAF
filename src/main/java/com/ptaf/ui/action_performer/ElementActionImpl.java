@@ -1,12 +1,12 @@
-package com.ptaf.action_performer;
+package com.ptaf.ui.action_performer;
 
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.AriaRole;
-import com.ptaf.handlers.LocatorHandler;
-import com.ptaf.helpers.ElementLocatorHelper;
-import com.ptaf.interfaces.ElementAction;
-import com.ptaf.page_helper.PageHelper;
-import com.ptaf.utils.YamlReader;
+import com.ptaf.ui.handlers.LocatorHandler;
+import com.ptaf.ui.helpers.ElementLocatorHelper;
+import com.ptaf.ui.interfaces.ElementAction;
+import com.ptaf.ui.page_helper.PageHelper;
+import com.ptaf.ui.utils.YamlReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
