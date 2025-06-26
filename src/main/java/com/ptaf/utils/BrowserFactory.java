@@ -1,4 +1,4 @@
-package com.ptaf.ui.utils;
+package com.ptaf.utils;
 
 import com.microsoft.playwright.*;
 import org.slf4j.Logger;

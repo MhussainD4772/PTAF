@@ -1,6 +1,6 @@
 package com.ptaf.ui.helpers;
 
-import com.ptaf.ui.utils.YamlReader;
+import com.ptaf.utils.YamlReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

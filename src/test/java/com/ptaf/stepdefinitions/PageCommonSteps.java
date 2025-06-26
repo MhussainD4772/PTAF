@@ -1,7 +1,7 @@
 package com.ptaf.stepdefinitions;
 
 import com.microsoft.playwright.Page;
-import com.ptaf.ui.hooks.Hooks;
+import com.ptaf.hooks.Hooks;
 import com.ptaf.ui.pages.PageCommonMethods;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;

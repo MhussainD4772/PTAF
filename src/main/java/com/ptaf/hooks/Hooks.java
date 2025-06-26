@@ -1,4 +1,4 @@
-package com.ptaf.ui.hooks;
+package com.ptaf.hooks;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
@@ -6,8 +6,8 @@ import com.microsoft.playwright.Page;
 import com.ptaf.api.handlers.ApiRequestHandler;
 import com.ptaf.db.handlers.DatabaseHandler;
 import com.ptaf.ui.pages.PageCommonMethods;
-import com.ptaf.ui.utils.ConfigurationProperties;
-import com.ptaf.ui.utils.BrowserFactory;
+import com.ptaf.utils.ConfigurationProperties;
+import com.ptaf.utils.BrowserFactory;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;

@@ -1,4 +1,4 @@
-package com.ptaf.ui.utils;
+package com.ptaf.utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

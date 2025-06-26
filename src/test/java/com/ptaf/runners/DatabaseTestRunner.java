@@ -18,7 +18,7 @@ import io.cucumber.junit.CucumberOptions;
         // The location of your feature files remains the same
         features = "src/test/resources/features",
         // IMPORTANT: The glue path is updated to find your database step definitions and hooks
-        glue = {"com/ptaf/stepdefinitions", "com/ptaf/ui/hooks"}
+        glue = {"com/ptaf/stepdefinitions", "com/ptaf/hooks"}
 )
 public class DatabaseTestRunner {
     // This class is intentionally empty. It serves as an entry point for the database tests.

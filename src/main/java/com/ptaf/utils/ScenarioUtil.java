@@ -1,4 +1,4 @@
-package com.ptaf.ui.utils;
+package com.ptaf.utils;
 
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;

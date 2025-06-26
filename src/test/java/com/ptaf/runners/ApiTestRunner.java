@@ -18,7 +18,7 @@ import io.cucumber.junit.CucumberOptions;
         // The location of your feature files remains the same
         features = "src/test/resources/features",
         // IMPORTANT: The glue path is updated to find your API step definitions and hooks
-        glue = {"com/ptaf/api/stepdefinitions", "com/ptaf/ui/hooks"}
+        glue = {"com/ptaf/api/stepdefinitions", "com/ptaf/hooks"}
 )
 public class ApiTestRunner {
     // This class is intentionally empty. It serves as an entry point for the API tests.

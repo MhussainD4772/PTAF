@@ -16,7 +16,7 @@ import org.junit.runner.RunWith;
         // Specify the location of the feature files
         features = "src/test/resources/features",
         // Specify the packages containing the step definitions and hooks
-        glue = {"com/ptaf/stepdefinitions", "com/ptaf/ui/hooks"}
+        glue = {"com/ptaf/stepdefinitions", "com/ptaf/hooks"}
 )
 public class Regression_Runner {
 }

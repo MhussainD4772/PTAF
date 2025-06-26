@@ -6,7 +6,7 @@ import com.ptaf.ui.handlers.LocatorHandler;
 import com.ptaf.ui.helpers.ElementLocatorHelper;
 import com.ptaf.ui.interfaces.ElementAction;
 import com.ptaf.ui.page_helper.PageHelper;
-import com.ptaf.ui.utils.YamlReader;
+import com.ptaf.utils.YamlReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
