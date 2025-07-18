@@ -12,3 +12,9 @@ Feature: Second Page Test
 #    And we get text on new page homePage locator tab_semple_heading
     Then we click on page homePage locator frame_btn
     And we get text on frame homePage locator frame_semple_heading
+
+    Scenario: Test Download Document Method
+      Given we click on page homePage locator elements_tab
+      When we click on page homePage locator update_and_download_tab
+      Then we click download on page homePage locator download_btn
+      And we wait for some time

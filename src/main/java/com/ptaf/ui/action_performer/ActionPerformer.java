@@ -1,5 +1,6 @@
 package com.ptaf.ui.action_performer;
 
+import com.microsoft.playwright.Download;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.MouseButton;
@@ -7,6 +8,7 @@ import com.microsoft.playwright.options.WaitForSelectorState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -35,8 +37,8 @@ public class ActionPerformer {
      * @param page          Playwright Page instance
      * @param action        The action name (e.g., "click", "gettext", "select")
      * @param targetLocator The element to perform the action on
-     * @param value         An optional value for the action (e.g., text to fill, attribute name)
-     * @return              A String result if the action yields one (e.g., gettext), otherwise null
+     * @param value         An optional value for the action (e.g., text to fill, attribute name, or file path)
+     * @return              A String result if the action yields one (e.g., gettext, download path), otherwise null
      */
     public String performActionWithReturn(Page page, String action, Locator targetLocator, String value) {
         return performAction(page, action, targetLocator, value);
@@ -75,6 +77,20 @@ public class ActionPerformer {
                 case "dragend": targetLocator.first().dispatchEvent("dragend"); return null;
                 case "uploadfile":
                 case "selectfile": targetLocator.first().setInputFiles(Paths.get(value)); return null;
+                case "download":
+                    // Start waiting for the download, and perform the click action that triggers it.
+                    Download download = page.waitForDownload(() -> {
+                        // Assumes a click on the target locator initiates the download.
+                        // This handles the most common use case for downloading files.
+                        // It can be combined with actions like 'check', 'select', etc.,
+                        // by ensuring the locator points to the element that triggers the download.
+                        targetLocator.first().click();
+                    });
+                    Path savePath = Paths.get(value);
+                    download.saveAs(savePath);
+                    logger.info("File downloaded successfully and saved to: {}", savePath);
+                    return download.path().toString(); // Return the path of the downloaded file
+
                 case "file_chooser_for_upload": page.waitForFileChooser(() -> click(targetLocator.first())); return null;
                 case "setattribute": targetLocator.first().evaluate("(el, val) => el.setAttribute('value', val)", value); return null;
                 case "removeattribute": targetLocator.first().evaluate("(el, attr) => el.removeAttribute(attr)", value); return null;
