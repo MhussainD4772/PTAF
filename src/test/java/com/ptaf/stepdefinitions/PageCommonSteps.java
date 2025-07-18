@@ -3,6 +3,7 @@ package com.ptaf.stepdefinitions;
 import com.microsoft.playwright.Page;
 import com.ptaf.hooks.Hooks;
 import com.ptaf.ui.pages.PageCommonMethods;
+import com.ptaf.utils.ConfigurationProperties;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -143,6 +144,12 @@ public class PageCommonSteps {
     @And("^we press on page (.*?) locator (.*?) key \"(.*?)\" keyboard$")
     public void wePressOnPageKey(String element, String locator, String value) {
         pageCommonMethods.press(page, element, locator, value);
+    }
+
+    @And("^we click download on page (.*?) locator (.*?)$")
+    public void weDownloadOnPageKey(String element, String locator) {
+        String filePath = ConfigurationProperties.getValue("downloadDocument");
+        pageCommonMethods.download(page, element, locator, filePath);
     }
 
     @Given("^get title of page$")

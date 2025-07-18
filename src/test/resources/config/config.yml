@@ -14,6 +14,9 @@ videoCapture: "false"
 # Excel Document Location in your Framework you can  modify based of your application
 excelDocumentLocation: "src/test/resources/testdata.xlsx"
 
+# Download Document Location in your Framework you can  modify based of your application
+downloadDocument: "src/test/downloads/download_document.png"
+
 # Environment URLs for different test environments
 rnd_url: "https://pdscawebdev01.myfnb.us/Account/Login?ReturnUrl=%2F"
 qa_url: "https://qa.fnbonline.fnb-online.com/documentcenter/Account/Login#"
