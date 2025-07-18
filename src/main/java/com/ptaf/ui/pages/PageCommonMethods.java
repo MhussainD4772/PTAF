@@ -207,19 +207,19 @@ public class PageCommonMethods {
      * @param element The element name defined in the locator configuration (e.g., YAML key).
      * @param locator The locator type used to identify the element (e.g., XPATH, CSS).
      * @param value   The directory path where the downloaded file should be saved.
-     * @param name    A custom suffix or name to append to the downloaded file name.
      */
-    public void download(Page page, String element, String locator, String value, String name) {
-
-        // Wait for a download to begin after performing the download-triggering action
-        Download download = page.waitForDownload(() -> {
-            // Perform the click action on the specified element to initiate the download
-            click(page, element, locator);
-        });
-
-        // After the download is completed, save the file to the specified path
-        // The filename is composed of the browser-suggested name plus the provided suffix
-        download.saveAs(Paths.get(value, download.suggestedFilename() + name));
+    public void download(Page page, String element, String locator, String value) {
+        performAction("download", page, element, locator, value);
+//
+//        // Wait for a download to begin after performing the download-triggering action
+//        Download download = page.waitForDownload(() -> {
+//            // Perform the click action on the specified element to initiate the download
+//            click(page, element, locator);
+//        });
+//
+//        // After the download is completed, save the file to the specified path
+//        // The filename is composed of the browser-suggested name plus the provided suffix
+//        download.saveAs(Paths.get(value, download.suggestedFilename() + name));
     }
 
 
