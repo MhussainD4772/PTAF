@@ -18,3 +18,4 @@ Feature: Second Page Test
       When we click on page homePage locator update_and_download_tab
       Then we click download on page homePage locator download_btn
       And we wait for some time
+      And we wait for some time
