@@ -1,0 +1,28 @@
+# Gemini assistant — defaults only. Never put the API key in this file.
+# gemini_api_key_env = NAME of env var. Set the value in project root ".env" (see .env.example) or export GEMINI_API_KEY=...
+ai_assistant:
+  gemini_api_key_env: "GEMINI_API_KEY"
+  # Model id — if one model hits 429 quota, set GEMINI_MODEL in .env (e.g. gemini-2.5-flash)
+  model: "gemini-2.5-flash"
+
+  features_dir: "src/test/resources/features"
+  step_definitions_dir: "src/test/java/com/ptaf/stepdefinitions"
+  # Phase 2 — extra framework context (hooks, pages, locators, config)
+  hooks_dir: "src/main/java/com/ptaf/hooks"
+  ui_pages_dir: "src/main/java/com/ptaf/ui/pages"
+  elements_dir: "src/test/resources/elements"
+  config_yaml_dir: "src/test/resources/config"
+
+  max_feature_files: 24
+  max_step_def_files: 24
+  max_hooks_files: 8
+  max_pages_files: 16
+  max_elements_files: 20
+  max_config_yaml_files: 10
+  ranking_top_chunks: 14
+  ranking_top_patterns: 55
+
+  max_total_context_chars: 100000
+
+  temperature: 0.2
+  max_output_tokens: 8192
