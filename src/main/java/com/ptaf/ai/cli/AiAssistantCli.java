@@ -54,8 +54,14 @@ public class AiAssistantCli implements Callable<Integer> {
     )
     static final class GenerateCommand implements Callable<Integer> {
 
-        @Option(names = {"-r", "--requirement"}, required = true, description = "Requirement / user story")
+        @Option(names = {"-r", "--requirement"}, description = "Requirement / user story")
         String requirement;
+
+        @Option(
+                names = {"--requirement-file"},
+                description = "UTF-8 file with the requirement (use instead of -r to avoid shell quoting issues)"
+        )
+        Path requirementFile;
 
         @Option(names = {"-o", "--output"}, description = "Output path (default: target/ai-proposals/generated.feature)")
         Path output;
@@ -67,13 +73,29 @@ public class AiAssistantCli implements Callable<Integer> {
         public Integer call() throws Exception {
             AiAssistantProperties props = new AiAssistantProperties();
             validateGemini(props);
+            String req = resolveRequirement();
             Path out = output != null ? output : Path.of("target", "ai-proposals", "generated.feature");
             FeatureGeneratorService service = new FeatureGeneratorService(props);
-            GenerationResult result = service.generate(projectRoot, requirement);
+            GenerationResult result = service.generate(projectRoot, req);
             Path written = service.writeFeatureFile(out, result);
             System.out.println("Wrote: " + written.toAbsolutePath());
             System.out.println("Suggested steps: " + result.suggestedReusableSteps().size());
             return 0;
+        }
+
+        private String resolveRequirement() throws Exception {
+            boolean hasFile = requirementFile != null;
+            boolean hasText = requirement != null && !requirement.isBlank();
+            if (hasFile && hasText) {
+                throw new IllegalStateException("Use either -r/--requirement or --requirement-file, not both");
+            }
+            if (hasFile) {
+                return Files.readString(requirementFile, StandardCharsets.UTF_8).trim();
+            }
+            if (hasText) {
+                return requirement.trim();
+            }
+            throw new IllegalStateException("Provide -r/--requirement or --requirement-file");
         }
     }
 
