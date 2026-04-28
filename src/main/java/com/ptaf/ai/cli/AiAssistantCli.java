@@ -371,7 +371,8 @@ public class AiAssistantCli implements Callable<Integer> {
             AiAssistantProperties props = new AiAssistantProperties();
             validateGemini(props);
             HttpServer server = AiGenerateHttpServer.createAndStart(port, projectRoot);
-            System.out.println("http://127.0.0.1:" + port + "  POST /generate  GET /health");
+            System.out.println("UI: http://127.0.0.1:" + port + "/");
+            System.out.println("API: POST /generate-write  POST /generate  GET /health");
             System.out.println("Press Enter to stop.");
             System.in.read();
             server.stop(0);
