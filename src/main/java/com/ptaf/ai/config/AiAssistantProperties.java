@@ -248,6 +248,36 @@ public final class AiAssistantProperties {
         return 200;
     }
 
+    public int contextMaxSimilarFeatures() {
+        Object value = context().get("maxSimilarFeatures");
+        if (value instanceof Number n) {
+            return n.intValue();
+        }
+        if (value instanceof String s) {
+            try {
+                return Integer.parseInt(s);
+            } catch (NumberFormatException ignored) {
+                return 3;
+            }
+        }
+        return 3;
+    }
+
+    public int contextMinSimilarityScore() {
+        Object value = context().get("minSimilarityScore");
+        if (value instanceof Number n) {
+            return n.intValue();
+        }
+        if (value instanceof String s) {
+            try {
+                return Integer.parseInt(s);
+            } catch (NumberFormatException ignored) {
+                return 1;
+            }
+        }
+        return 1;
+    }
+
     public int maxFeatureFiles() {
         return integer("max_feature_files", 8);
     }

@@ -250,6 +250,7 @@
                                 <include>**/AiGenerationAuditLoggerTest.java</include>
                                 <include>**/GenerationFlowIntegrationTest.java</include>
                                 <include>**/FrameworkContextCollectorTest.java</include>
+                                <include>**/SimilarFeatureRetrieverTest.java</include>
                                 <include>**/KeywordOverlapRankerTest.java</include>
                                 <include>**/DuplicateStepDetectorTest.java</include>
                                 <include>**/LogRedactorTest.java</include>

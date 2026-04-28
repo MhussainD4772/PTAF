@@ -50,3 +50,5 @@ ai_assistant:
     maxFeatureSnippets: 20
     maxStepDefinitionsInPrompt: 100
     maxYamlKeysInPrompt: 200
+    maxSimilarFeatures: 3
+    minSimilarityScore: 1
