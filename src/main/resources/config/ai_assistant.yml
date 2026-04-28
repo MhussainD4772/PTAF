@@ -7,6 +7,13 @@ ai_assistant:
 
   features_dir: "src/test/resources/features"
   step_definitions_dir: "src/test/java/com/ptaf/stepdefinitions"
+  step_definition_paths:
+    - "src/test/java"
+  yaml_paths:
+    elements: "src/test/resources/elements"
+    api_requests: "src/test/resources/api_requests"
+    queries: "src/test/resources/queries"
+    config: "src/test/resources/config"
   # Phase 2 — extra framework context (hooks, pages, locators, config)
   hooks_dir: "src/main/java/com/ptaf/hooks"
   ui_pages_dir: "src/main/java/com/ptaf/ui/pages"
@@ -26,3 +33,7 @@ ai_assistant:
 
   temperature: 0.2
   max_output_tokens: 8192
+  prompt_version: "phase1-v1"
+  audit:
+    enabled: true
+    output_path: "target/ai-audit/generation-audit.jsonl"

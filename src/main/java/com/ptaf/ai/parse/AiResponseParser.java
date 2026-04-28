@@ -1,6 +1,7 @@
 package com.ptaf.ai.parse;
 
 import com.ptaf.ai.model.GenerationResult;
+import com.ptaf.ai.model.AiGenerationStructuredResponse;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,7 +35,10 @@ public final class AiResponseParser {
                 feature != null ? feature.trim() : "",
                 suggestions,
                 raw,
-                Collections.emptyList()
+                Collections.emptyList(),
+                new AiGenerationStructuredResponse(),
+                null,
+                null
         );
     }
 

@@ -4,6 +4,8 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -119,6 +121,40 @@ public final class AiAssistantProperties {
         return str("step_definitions_dir", "src/test/java/com/ptaf/stepdefinitions");
     }
 
+    public List<String> stepDefinitionPaths() {
+        Object value = ai().get("step_definition_paths");
+        if (value instanceof List<?> list) {
+            return list.stream()
+                    .filter(item -> item != null && !Objects.toString(item, "").isBlank())
+                    .map(item -> Objects.toString(item, "").trim())
+                    .toList();
+        }
+        return List.of(stepDefinitionsDir());
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, String> yamlPaths() {
+        Map<String, String> defaults = new LinkedHashMap<>();
+        defaults.put("elements", "src/test/resources/elements");
+        defaults.put("api_requests", "src/test/resources/api_requests");
+        defaults.put("queries", "src/test/resources/queries");
+        defaults.put("config", "src/test/resources/config");
+
+        Object value = ai().get("yaml_paths");
+        if (!(value instanceof Map<?, ?> map)) {
+            return defaults;
+        }
+        Map<String, String> out = new LinkedHashMap<>(defaults);
+        for (Map.Entry<?, ?> e : map.entrySet()) {
+            String key = Objects.toString(e.getKey(), "").trim();
+            String path = Objects.toString(e.getValue(), "").trim();
+            if (!key.isEmpty() && !path.isEmpty()) {
+                out.put(key, path);
+            }
+        }
+        return out;
+    }
+
     public int maxFeatureFiles() {
         return integer("max_feature_files", 8);
     }
@@ -177,6 +213,37 @@ public final class AiAssistantProperties {
 
     public int maxOutputTokens() {
         return integer("max_output_tokens", 8192);
+    }
+
+    public String promptVersion() {
+        return str("prompt_version", "phase1-v1");
+    }
+
+    @SuppressWarnings("unchecked")
+    public boolean auditEnabled() {
+        Object auditObj = ai().get("audit");
+        if (auditObj instanceof Map<?, ?> map) {
+            Object enabled = map.get("enabled");
+            if (enabled instanceof Boolean b) {
+                return b;
+            }
+            if (enabled instanceof String s) {
+                return Boolean.parseBoolean(s.trim());
+            }
+        }
+        return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    public String auditOutputPath() {
+        Object auditObj = ai().get("audit");
+        if (auditObj instanceof Map<?, ?> map) {
+            Object output = map.get("output_path");
+            if (output != null && !Objects.toString(output, "").isBlank()) {
+                return Objects.toString(output, "target/ai-audit/generation-audit.jsonl").trim();
+            }
+        }
+        return "target/ai-audit/generation-audit.jsonl";
     }
 
     private static String getenv(String name) {

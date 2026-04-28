@@ -24,10 +24,11 @@ public final class PromptBuilder {
                 RANKED_STEP_PATTERNS_WITH_SOURCES when a step fits the requirement.
 
                 Output rules:
-                - Use the exact marker blocks requested in the user message.
+                - Return ONLY the required marker blocks; no markdown, no commentary, no extra text.
+                - Always include all required sections, even if a section is empty.
                 - Gherkin must include a Feature line and at least one Scenario with steps.
                 - Steps are plain Gherkin only (Given/When/Then/And/But).
-                - For suggested steps, prefer phrases that appear in the ranked pattern list.
+                - Prefer reusing existing steps from ranked patterns when possible.
                 """.strip();
     }
 
@@ -55,14 +56,26 @@ public final class PromptBuilder {
                 %s
 
                 Respond using EXACTLY this structure (no markdown code fences):
-                <<<FEATURE_GHERKIN>>>
+                <<<FEATURE_FILE>>>
                 Feature: ...
                   Scenario: ...
                     Given ...
-                <<<END_FEATURE_GHERKIN>>>
-                <<<SUGGESTED_REUSABLE_STEPS>>>
-                - one bullet per line; when possible cite an existing step; you may add (source: path/to/File.java) after the step
-                <<<END_SUGGESTED_REUSABLE_STEPS>>>
+                <<<END_FEATURE_FILE>>>
+                <<<REUSED_STEPS>>>
+                - one bullet per line
+                <<<END_REUSED_STEPS>>>
+                <<<NEW_STEPS_NEEDED>>>
+                - one bullet per line
+                <<<END_NEW_STEPS_NEEDED>>>
+                <<<YAML_KEYS_USED>>>
+                - elements.some.key
+                <<<END_YAML_KEYS_USED>>>
+                <<<MISSING_YAML_KEYS>>>
+                - elements.missing.key
+                <<<END_MISSING_YAML_KEYS>>>
+                <<<WARNINGS>>>
+                - warning text
+                <<<END_WARNINGS>>>
                 """.formatted(
                 requirement.trim(),
                 features,

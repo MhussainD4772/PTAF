@@ -1,13 +1,17 @@
 package com.ptaf.ai.cli;
 
 import com.ptaf.ai.FeatureGeneratorService;
+import com.ptaf.ai.audit.AiGenerationAuditLogger;
+import com.ptaf.ai.audit.AiGenerationAuditRecord;
 import com.ptaf.ai.config.AiAssistantProperties;
 import com.ptaf.ai.http.AiGenerateHttpServer;
+import com.ptaf.ai.model.AiGenerationMode;
 import com.ptaf.ai.model.GenerationResult;
 import com.ptaf.ai.quality.QualityGateService;
 import com.ptaf.ai.quality.QualityReportWriter;
 import com.ptaf.ai.telemetry.TelemetrySummaryWriter;
 import com.ptaf.ai.triage.TriageService;
+import com.ptaf.ai.validation.GenerationModeEvaluator;
 import com.sun.net.httpserver.HttpServer;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -16,6 +20,11 @@ import picocli.CommandLine.Option;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 
 /**
@@ -66,6 +75,12 @@ public class AiAssistantCli implements Callable<Integer> {
         @Option(names = {"-o", "--output"}, description = "Output path (default: target/ai-proposals/generated.feature)")
         Path output;
 
+        @Option(names = {"--mode"}, description = "Generation mode: preview|write|strict", defaultValue = "preview")
+        String mode;
+
+        @Option(names = {"--overwrite"}, description = "Allow overwriting an existing output file in write mode")
+        boolean overwrite;
+
         @Option(names = {"--project-root"}, description = "Repo root (default: user.dir)")
         Path projectRoot = Path.of(System.getProperty("user.dir"));
 
@@ -75,12 +90,167 @@ public class AiAssistantCli implements Callable<Integer> {
             validateGemini(props);
             String req = resolveRequirement();
             Path out = output != null ? output : Path.of("target", "ai-proposals", "generated.feature");
+            AiGenerationMode generationMode = AiGenerationMode.fromString(mode);
             FeatureGeneratorService service = new FeatureGeneratorService(props);
-            GenerationResult result = service.generate(projectRoot, req);
-            Path written = service.writeFeatureFile(out, result);
-            System.out.println("Wrote: " + written.toAbsolutePath());
-            System.out.println("Suggested steps: " + result.suggestedReusableSteps().size());
-            return 0;
+            GenerationResult result = null;
+            List<String> blockingErrors = new ArrayList<>();
+            Path written = null;
+            int exitCode = 0;
+            try {
+                result = service.generate(projectRoot, req);
+                GenerationModeEvaluator modeEvaluator = new GenerationModeEvaluator();
+                blockingErrors = modeEvaluator.blockingErrors(generationMode, result);
+                if (modeEvaluator.shouldWriteFile(generationMode, blockingErrors)) {
+                    written = service.writeFeatureFile(out, result, overwrite);
+                }
+                if (!blockingErrors.isEmpty()) {
+                    exitCode = 1;
+                }
+            } catch (Exception e) {
+                blockingErrors = List.of(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+                exitCode = 1;
+            }
+
+            System.out.println("=== Generation Result ===");
+            System.out.println("Mode: " + generationMode);
+            System.out.println("File written: " + (written != null));
+            if (written != null) {
+                System.out.println("Path: " + written.toAbsolutePath());
+            }
+            if (result != null) {
+                System.out.println("Parse: " + (result.structuredResponse().parseSuccessful() ? "passed" : "failed"));
+                System.out.println("Suggested steps: " + result.suggestedReusableSteps().size());
+            }
+            if (result != null && result.stepReuseValidationResult() != null) {
+                var v = result.stepReuseValidationResult();
+                System.out.println("\n=== Step Reuse Validation ===");
+                System.out.println("Total steps: " + v.totalSteps());
+                System.out.println("Matched existing steps: " + v.matchedCount());
+                System.out.println("New steps needed: " + v.unmatchedCount());
+                System.out.println("Reuse percentage: " + String.format(Locale.ROOT, "%.1f", v.reusePercentage()) + "%");
+                if (!v.warnings().isEmpty()) {
+                    System.out.println("Warnings:");
+                    for (String warning : v.warnings()) {
+                        System.out.println("- " + warning);
+                    }
+                }
+            }
+            if (result != null && result.yamlKeyValidationResult() != null) {
+                var y = result.yamlKeyValidationResult();
+                System.out.println("\n=== YAML Key Validation ===");
+                System.out.println("Total keys used: " + y.totalKeys());
+                System.out.println("Existing keys: " + y.existingCount());
+                System.out.println("Missing keys: " + y.missingCount());
+                if (!y.missingKeys().isEmpty()) {
+                    System.out.println("Missing:");
+                    for (String missing : y.missingKeys()) {
+                        System.out.println("- " + missing);
+                    }
+                    System.out.println("Suggested patch:");
+                    for (String missing : y.missingKeys()) {
+                        String patch = y.suggestedPatches().get(missing);
+                        if (patch != null && !patch.isBlank()) {
+                            System.out.println(patch);
+                        }
+                    }
+                }
+                if (!y.warnings().isEmpty()) {
+                    System.out.println("Warnings:");
+                    for (String warning : y.warnings()) {
+                        System.out.println("- " + warning);
+                    }
+                }
+                System.out.println("YAML validation: " + y.existingCount() + "/" + y.totalKeys() + " keys found");
+            }
+
+            List<String> warnings = collectWarnings(result);
+            AiGenerationAuditRecord auditRecord = buildAuditRecord(
+                    generationMode,
+                    props,
+                    req,
+                    out,
+                    written,
+                    result,
+                    blockingErrors,
+                    warnings
+            );
+            AiGenerationAuditLogger.WriteResult auditWrite = new AiGenerationAuditLogger()
+                    .append(projectRoot, props.auditEnabled(), props.auditOutputPath(), auditRecord);
+            if (auditWrite.written()) {
+                System.out.println("\n=== Audit ===");
+                System.out.println("Audit log written:");
+                System.out.println(auditWrite.outputPath());
+            } else if (auditWrite.warningMessage() != null) {
+                System.out.println(auditWrite.warningMessage());
+            }
+
+            if (blockingErrors.isEmpty()) {
+                System.out.println("\nBlocking errors: none");
+                return exitCode;
+            }
+            System.out.println("\nBlocking errors:");
+            for (String error : blockingErrors) {
+                System.out.println("- " + error);
+            }
+            return exitCode;
+        }
+
+        private static List<String> collectWarnings(GenerationResult result) {
+            if (result == null) {
+                return List.of();
+            }
+            List<String> warnings = new ArrayList<>();
+            warnings.addAll(result.structuredResponse().warnings());
+            if (result.stepReuseValidationResult() != null) {
+                warnings.addAll(result.stepReuseValidationResult().warnings());
+            }
+            if (result.yamlKeyValidationResult() != null) {
+                warnings.addAll(result.yamlKeyValidationResult().warnings());
+            }
+            return warnings;
+        }
+
+        private static AiGenerationAuditRecord buildAuditRecord(
+                AiGenerationMode mode,
+                AiAssistantProperties props,
+                String requirement,
+                Path requestedOutput,
+                Path writtenOutput,
+                GenerationResult result,
+                List<String> blockingErrors,
+                List<String> warnings
+        ) {
+            boolean parseOk = result != null && result.structuredResponse() != null && result.structuredResponse().parseSuccessful();
+            boolean stepOk = result != null
+                    && result.stepReuseValidationResult() != null
+                    && result.stepReuseValidationResult().passed();
+            boolean yamlOk = result != null
+                    && result.yamlKeyValidationResult() != null
+                    && result.yamlKeyValidationResult().passed();
+            int reused = result != null && result.structuredResponse() != null ? result.structuredResponse().reusedSteps().size() : 0;
+            int newSteps = result != null && result.structuredResponse() != null ? result.structuredResponse().newStepsNeeded().size() : 0;
+            int missingYaml = result != null && result.yamlKeyValidationResult() != null ? result.yamlKeyValidationResult().missingCount() : 0;
+            String outputPath = writtenOutput != null ? writtenOutput.toString() : requestedOutput.toString();
+
+            return new AiGenerationAuditRecord(
+                    UUID.randomUUID().toString(),
+                    Instant.now().toString(),
+                    "generate",
+                    mode.name(),
+                    props.model(),
+                    props.promptVersion(),
+                    AiGenerationAuditLogger.sha256(requirement),
+                    outputPath,
+                    parseOk,
+                    stepOk,
+                    yamlOk,
+                    writtenOutput != null,
+                    reused,
+                    newSteps,
+                    missingYaml,
+                    warnings,
+                    blockingErrors
+            );
         }
 
         private String resolveRequirement() throws Exception {

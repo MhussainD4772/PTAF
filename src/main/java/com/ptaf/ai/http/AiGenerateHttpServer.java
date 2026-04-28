@@ -74,6 +74,9 @@ public final class AiGenerateHttpServer {
                 out.put("featureGherkin", result.featureGherkin());
                 out.set("suggestedReusableSteps", JSON.valueToTree(result.suggestedReusableSteps()));
                 out.put("rawModelResponse", result.rawModelResponse());
+                out.set("structuredResponse", JSON.valueToTree(result.structuredResponse()));
+                out.set("stepReuseValidation", JSON.valueToTree(result.stepReuseValidationResult()));
+                out.set("yamlKeyValidation", JSON.valueToTree(result.yamlKeyValidationResult()));
                 ArrayNode trace = JSON.createArrayNode();
                 for (var sp : result.reuseTrace()) {
                     ObjectNode row = JSON.createObjectNode();

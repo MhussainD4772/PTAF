@@ -1,5 +1,8 @@
 package com.ptaf.ai.model;
 
+import com.ptaf.ai.validation.StepReuseValidationResult;
+import com.ptaf.ai.validation.YamlKeyValidationResult;
+
 import java.util.List;
 
 /**
@@ -9,6 +12,9 @@ public record GenerationResult(
         String featureGherkin,
         List<String> suggestedReusableSteps,
         String rawModelResponse,
-        List<ScoredPattern> reuseTrace
+        List<ScoredPattern> reuseTrace,
+        AiGenerationStructuredResponse structuredResponse,
+        StepReuseValidationResult stepReuseValidationResult,
+        YamlKeyValidationResult yamlKeyValidationResult
 ) {
 }
