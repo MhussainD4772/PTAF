@@ -83,6 +83,15 @@ public final class AiAssistantProperties {
         return defaultValue;
     }
 
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> context() {
+        Object v = ai().get("context");
+        if (v instanceof Map<?, ?> m) {
+            return (Map<String, Object>) m;
+        }
+        return Collections.emptyMap();
+    }
+
     public String geminiApiKeyEnvName() {
         return str("gemini_api_key_env", "GEMINI_API_KEY");
     }
@@ -132,6 +141,17 @@ public final class AiAssistantProperties {
         return List.of(stepDefinitionsDir());
     }
 
+    public List<String> contextStepDefinitionPaths() {
+        Object value = context().get("stepDefinitionPaths");
+        if (value instanceof List<?> list) {
+            return list.stream()
+                    .filter(item -> item != null && !Objects.toString(item, "").isBlank())
+                    .map(item -> Objects.toString(item, "").trim())
+                    .toList();
+        }
+        return stepDefinitionPaths();
+    }
+
     @SuppressWarnings("unchecked")
     public Map<String, String> yamlPaths() {
         Map<String, String> defaults = new LinkedHashMap<>();
@@ -153,6 +173,79 @@ public final class AiAssistantProperties {
             }
         }
         return out;
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, String> contextYamlPaths() {
+        Object value = context().get("yamlPaths");
+        if (!(value instanceof Map<?, ?> map)) {
+            return yamlPaths();
+        }
+        Map<String, String> defaults = new LinkedHashMap<>(yamlPaths());
+        for (Map.Entry<?, ?> e : map.entrySet()) {
+            String key = Objects.toString(e.getKey(), "").trim();
+            String path = Objects.toString(e.getValue(), "").trim();
+            if (!key.isEmpty() && !path.isEmpty()) {
+                defaults.put(key, path);
+            }
+        }
+        return defaults;
+    }
+
+    public List<String> contextFeaturePaths() {
+        Object value = context().get("featurePaths");
+        if (value instanceof List<?> list) {
+            return list.stream()
+                    .filter(item -> item != null && !Objects.toString(item, "").isBlank())
+                    .map(item -> Objects.toString(item, "").trim())
+                    .toList();
+        }
+        return List.of(featuresDir());
+    }
+
+    public int contextMaxFeatureSnippets() {
+        Object value = context().get("maxFeatureSnippets");
+        if (value instanceof Number n) {
+            return n.intValue();
+        }
+        if (value instanceof String s) {
+            try {
+                return Integer.parseInt(s);
+            } catch (NumberFormatException ignored) {
+                return 20;
+            }
+        }
+        return 20;
+    }
+
+    public int contextMaxStepDefinitionsInPrompt() {
+        Object value = context().get("maxStepDefinitionsInPrompt");
+        if (value instanceof Number n) {
+            return n.intValue();
+        }
+        if (value instanceof String s) {
+            try {
+                return Integer.parseInt(s);
+            } catch (NumberFormatException ignored) {
+                return 100;
+            }
+        }
+        return 100;
+    }
+
+    public int contextMaxYamlKeysInPrompt() {
+        Object value = context().get("maxYamlKeysInPrompt");
+        if (value instanceof Number n) {
+            return n.intValue();
+        }
+        if (value instanceof String s) {
+            try {
+                return Integer.parseInt(s);
+            } catch (NumberFormatException ignored) {
+                return 200;
+            }
+        }
+        return 200;
     }
 
     public int maxFeatureFiles() {

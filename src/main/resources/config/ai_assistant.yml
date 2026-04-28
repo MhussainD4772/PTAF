@@ -37,3 +37,16 @@ ai_assistant:
   audit:
     enabled: true
     output_path: "target/ai-audit/generation-audit.jsonl"
+  context:
+    featurePaths:
+      - "src/test/resources/features"
+    stepDefinitionPaths:
+      - "src/test/java"
+    yamlPaths:
+      elements: "src/test/resources/elements"
+      api_requests: "src/test/resources/api_requests"
+      queries: "src/test/resources/queries"
+      config: "src/test/resources/config"
+    maxFeatureSnippets: 20
+    maxStepDefinitionsInPrompt: 100
+    maxYamlKeysInPrompt: 200
