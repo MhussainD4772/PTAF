@@ -92,6 +92,15 @@ public final class AiAssistantProperties {
         return Collections.emptyMap();
     }
 
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> contextRules() {
+        Object v = ai().get("contextRules");
+        if (v instanceof Map<?, ?> m) {
+            return (Map<String, Object>) m;
+        }
+        return Collections.emptyMap();
+    }
+
     public String geminiApiKeyEnvName() {
         return str("gemini_api_key_env", "GEMINI_API_KEY");
     }
@@ -276,6 +285,34 @@ public final class AiAssistantProperties {
             }
         }
         return 1;
+    }
+
+    public String defaultUiContext() {
+        Object value = contextRules().get("defaultUiContext");
+        String out = value != null ? Objects.toString(value, "page").trim().toLowerCase() : "page";
+        return out.isBlank() ? "page" : out;
+    }
+
+    public List<String> frameAllowedPages() {
+        Object value = contextRules().get("frameAllowedPages");
+        if (value instanceof List<?> list) {
+            return list.stream()
+                    .filter(item -> item != null && !Objects.toString(item, "").isBlank())
+                    .map(item -> Objects.toString(item, "").trim().toLowerCase())
+                    .toList();
+        }
+        return List.of();
+    }
+
+    public List<String> frameAllowedLocators() {
+        Object value = contextRules().get("frameAllowedLocators");
+        if (value instanceof List<?> list) {
+            return list.stream()
+                    .filter(item -> item != null && !Objects.toString(item, "").isBlank())
+                    .map(item -> Objects.toString(item, "").trim().toLowerCase())
+                    .toList();
+        }
+        return List.of();
     }
 
     public int maxFeatureFiles() {

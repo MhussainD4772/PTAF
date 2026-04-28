@@ -52,3 +52,7 @@ ai_assistant:
     maxYamlKeysInPrompt: 200
     maxSimilarFeatures: 3
     minSimilarityScore: 1
+  contextRules:
+    defaultUiContext: page
+    frameAllowedPages: []
+    frameAllowedLocators: []

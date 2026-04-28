@@ -73,6 +73,21 @@ class GenerationModeEvaluatorTest {
         assertTrue(errors.stream().anyMatch(e -> e.contains("Unknown YAML key used")));
     }
 
+    @Test
+    void writeModeBlocksWhenPageFrameGuardFails() {
+        GenerationResult result = resultWithPageFrameGuardFailure();
+        var errors = evaluator.blockingErrors(AiGenerationMode.WRITE, result);
+        assertTrue(errors.stream().anyMatch(e -> e.contains("Frame step is not allowed")));
+        assertFalse(evaluator.shouldWriteFile(AiGenerationMode.WRITE, errors));
+    }
+
+    @Test
+    void strictModeFailsWhenPageFrameGuardFails() {
+        GenerationResult result = resultWithPageFrameGuardFailure();
+        var errors = evaluator.blockingErrors(AiGenerationMode.STRICT, result);
+        assertTrue(errors.stream().anyMatch(e -> e.contains("Frame step is not allowed")));
+    }
+
     private static GenerationResult validResult() {
         AiGenerationStructuredResponse structured = new AiGenerationStructuredResponse();
         structured.setParseSuccessful(true);
@@ -105,6 +120,7 @@ class GenerationModeEvaluatorTest {
                 step,
                 yaml,
                 null,
+                null,
                 runnable(true),
                 List.of()
         );
@@ -120,6 +136,7 @@ class GenerationModeEvaluatorTest {
                 "",
                 List.of(),
                 structured,
+                null,
                 null,
                 null,
                 null,
@@ -146,6 +163,7 @@ class GenerationModeEvaluatorTest {
                 base.stepReuseValidationResult(),
                 yaml,
                 null,
+                null,
                 runnable(false),
                 List.of()
         );
@@ -169,6 +187,7 @@ class GenerationModeEvaluatorTest {
                 base.structuredResponse(),
                 step,
                 base.yamlKeyValidationResult(),
+                null,
                 null,
                 runnable(false),
                 List.of()
@@ -194,7 +213,52 @@ class GenerationModeEvaluatorTest {
                         List.of(),
                         List.of("Unknown YAML key used: elements.login.submitbutton")
                 ),
+                null,
                 runnable(false),
+                List.of()
+        );
+    }
+
+    private static GenerationResult resultWithPageFrameGuardFailure() {
+        GenerationResult base = validResult();
+        PageFrameContextGuardResult guardResult = new PageFrameContextGuardResult(
+                false,
+                List.of("And we click on frame login locator loginbutton"),
+                List.of(),
+                List.of(),
+                List.of("Frame step is not allowed for page 'login' locator 'loginbutton'. Use page step instead."),
+                1,
+                0
+        );
+        return new GenerationResult(
+                base.featureGherkin(),
+                base.suggestedReusableSteps(),
+                base.rawModelResponse(),
+                base.reuseTrace(),
+                base.structuredResponse(),
+                base.stepReuseValidationResult(),
+                base.yamlKeyValidationResult(),
+                null,
+                guardResult,
+                new RunnableFeatureResult(
+                        false,
+                        List.of("Frame step is not allowed for page 'login' locator 'loginbutton'. Use page step instead."),
+                        List.of(),
+                        true,
+                        true,
+                        true,
+                        true,
+                        false,
+                        100.0,
+                        1,
+                        1,
+                        0,
+                        1,
+                        1,
+                        0,
+                        1,
+                        0
+                ),
                 List.of()
         );
     }
@@ -208,13 +272,16 @@ class GenerationModeEvaluatorTest {
                 true,
                 true,
                 runnable,
+                runnable,
                 100.0,
                 1,
                 1,
                 0,
                 1,
                 1,
-                runnable ? 0 : 1
+                runnable ? 0 : 1,
+                runnable ? 0 : 1,
+                1
         );
     }
 }

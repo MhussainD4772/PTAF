@@ -101,7 +101,8 @@ class MissingYamlPatchSuggesterTest {
                 structured(),
                 step(),
                 yaml,
-                guard
+                guard,
+                new PageFrameContextGuardResult(true, List.of(), List.of(), List.of(), List.of(), 0, 1)
         );
         assertFalse(runnable.runnable());
     }

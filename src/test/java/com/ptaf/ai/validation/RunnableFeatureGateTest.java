@@ -18,7 +18,8 @@ class RunnableFeatureGateTest {
                 structured(true, "Feature: Login\nScenario: Ok"),
                 step(true),
                 yaml(true, 1, 1, 0),
-                allowed(true, List.of(), List.of())
+                allowed(true, List.of(), List.of()),
+                pageFrame(true, 0, 1)
         );
         assertTrue(result.runnable());
     }
@@ -29,7 +30,8 @@ class RunnableFeatureGateTest {
                 structured(false, "Feature: Login"),
                 step(true),
                 yaml(true, 1, 1, 0),
-                allowed(true, List.of(), List.of())
+                allowed(true, List.of(), List.of()),
+                pageFrame(true, 0, 0)
         );
         assertFalse(result.runnable());
         assertTrue(result.blockingReasons().stream().anyMatch(r -> r.contains("failed to parse")));
@@ -41,7 +43,8 @@ class RunnableFeatureGateTest {
                 structured(true, ""),
                 step(true),
                 yaml(true, 1, 1, 0),
-                allowed(true, List.of(), List.of())
+                allowed(true, List.of(), List.of()),
+                pageFrame(true, 0, 0)
         );
         assertFalse(result.runnable());
         assertTrue(result.blockingReasons().stream().anyMatch(r -> r.contains("empty")));
@@ -53,7 +56,8 @@ class RunnableFeatureGateTest {
                 structured(true, "Feature: Login"),
                 step(false),
                 yaml(true, 1, 1, 0),
-                allowed(true, List.of(), List.of())
+                allowed(true, List.of(), List.of()),
+                pageFrame(true, 0, 1)
         );
         assertFalse(result.runnable());
         assertTrue(result.blockingReasons().stream().anyMatch(r -> r.contains("Step validation failed")));
@@ -65,7 +69,8 @@ class RunnableFeatureGateTest {
                 structured(true, "Feature: Login"),
                 step(true),
                 yaml(false, 2, 1, 1),
-                allowed(true, List.of(), List.of())
+                allowed(true, List.of(), List.of()),
+                pageFrame(true, 0, 1)
         );
         assertFalse(result.runnable());
         assertTrue(result.blockingReasons().stream().anyMatch(r -> r.contains("YAML validation failed")));
@@ -77,7 +82,8 @@ class RunnableFeatureGateTest {
                 structured(true, "Feature: Login"),
                 step(true),
                 yaml(true, 1, 1, 0),
-                allowed(false, List.of("elements.login.submitbutton"), List.of())
+                allowed(false, List.of("elements.login.submitbutton"), List.of()),
+                pageFrame(true, 0, 1)
         );
         assertFalse(result.runnable());
         assertTrue(result.blockingReasons().stream().anyMatch(r -> r.contains("Unknown YAML key used")));
@@ -89,7 +95,8 @@ class RunnableFeatureGateTest {
                 structured(true, "Feature: Login\nThen elements.login.submitbutton"),
                 step(true),
                 yaml(false, 1, 0, 1),
-                allowed(false, List.of(), List.of("elements.login.submitbutton"))
+                allowed(false, List.of(), List.of("elements.login.submitbutton")),
+                pageFrame(true, 0, 1)
         );
         assertFalse(result.runnable());
         assertTrue(result.blockingReasons().stream().anyMatch(r -> r.contains("Missing YAML key appears inside feature file")));
@@ -101,10 +108,24 @@ class RunnableFeatureGateTest {
                 structured(false, ""),
                 step(false),
                 yaml(false, 1, 0, 1),
-                allowed(false, List.of("elements.login.x"), List.of("elements.login.x"))
+                allowed(false, List.of("elements.login.x"), List.of("elements.login.x")),
+                pageFrame(false, 1, 0)
         );
         assertFalse(result.runnable());
         assertTrue(result.blockingReasons().size() >= 3);
+    }
+
+    @Test
+    void notRunnableWhenPageFrameGuardFails() {
+        RunnableFeatureResult result = gate.evaluate(
+                structured(true, "Feature: Login"),
+                step(true),
+                yaml(true, 1, 1, 0),
+                allowed(true, List.of(), List.of()),
+                pageFrame(false, 2, 0)
+        );
+        assertFalse(result.runnable());
+        assertTrue(result.blockingReasons().stream().anyMatch(r -> r.contains("Page/frame context guard failed")));
     }
 
     private static AiGenerationStructuredResponse structured(boolean parseOk, String feature) {
@@ -159,6 +180,18 @@ class RunnableFeatureGateTest {
                 missingInFeature,
                 List.of(),
                 List.of()
+        );
+    }
+
+    private static PageFrameContextGuardResult pageFrame(boolean passed, int frameCount, int pageCount) {
+        return new PageFrameContextGuardResult(
+                passed,
+                passed ? List.of() : List.of("And we click on frame login locator loginbutton"),
+                List.of(),
+                List.of(),
+                passed ? List.of() : List.of("Frame step is not allowed for page 'login' locator 'loginbutton'. Use page step instead."),
+                frameCount,
+                pageCount
         );
     }
 }

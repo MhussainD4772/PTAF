@@ -4,6 +4,7 @@ import com.ptaf.ai.validation.StepReuseValidationResult;
 import com.ptaf.ai.validation.YamlKeyValidationResult;
 import com.ptaf.ai.validation.AllowedYamlGuardResult;
 import com.ptaf.ai.validation.MissingYamlPatchSuggestion;
+import com.ptaf.ai.validation.PageFrameContextGuardResult;
 import com.ptaf.ai.validation.RunnableFeatureResult;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public record GenerationResult(
         StepReuseValidationResult stepReuseValidationResult,
         YamlKeyValidationResult yamlKeyValidationResult,
         AllowedYamlGuardResult allowedYamlGuardResult,
+        PageFrameContextGuardResult pageFrameContextGuardResult,
         RunnableFeatureResult runnableFeatureResult,
         List<MissingYamlPatchSuggestion> missingYamlPatchSuggestions
 ) {

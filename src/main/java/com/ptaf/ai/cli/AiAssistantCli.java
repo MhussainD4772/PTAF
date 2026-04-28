@@ -196,6 +196,25 @@ public class AiAssistantCli implements Callable<Integer> {
                     }
                 }
             }
+            if (result != null && result.pageFrameContextGuardResult() != null) {
+                var pf = result.pageFrameContextGuardResult();
+                System.out.println("\n=== Page/Frame Context Guard ===");
+                System.out.println("Passed: " + pf.passed());
+                System.out.println("Frame steps: " + pf.frameStepCount());
+                System.out.println("Page steps: " + pf.pageStepCount());
+                if (!pf.blockingErrors().isEmpty()) {
+                    System.out.println("Blocking errors:");
+                    for (String err : pf.blockingErrors()) {
+                        System.out.println("- " + err);
+                    }
+                }
+                if (!pf.warnings().isEmpty()) {
+                    System.out.println("Warnings:");
+                    for (String warning : pf.warnings()) {
+                        System.out.println("- " + warning);
+                    }
+                }
+            }
             if (result != null && result.missingYamlPatchSuggestions() != null
                     && !result.missingYamlPatchSuggestions().isEmpty()) {
                 System.out.println("\n=== Missing YAML Patch Suggestions ===");
@@ -260,6 +279,9 @@ public class AiAssistantCli implements Callable<Integer> {
             }
             if (result.allowedYamlGuardResult() != null) {
                 warnings.addAll(result.allowedYamlGuardResult().warnings());
+            }
+            if (result.pageFrameContextGuardResult() != null) {
+                warnings.addAll(result.pageFrameContextGuardResult().warnings());
             }
             if (result.runnableFeatureResult() != null) {
                 warnings.addAll(result.runnableFeatureResult().warnings());

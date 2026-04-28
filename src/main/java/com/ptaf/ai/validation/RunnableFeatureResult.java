@@ -10,12 +10,15 @@ public record RunnableFeatureResult(
         boolean stepValidationPassed,
         boolean yamlValidationPassed,
         boolean allowedYamlPassed,
+        boolean pageFrameContextPassed,
         double stepReusePercentage,
         int totalSteps,
         int matchedSteps,
         int unmatchedSteps,
         int yamlKeysUsed,
         int existingYamlKeys,
-        int missingYamlKeys
+        int missingYamlKeys,
+        int frameStepCount,
+        int pageStepCount
 ) {
 }

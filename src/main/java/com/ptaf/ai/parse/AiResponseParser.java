@@ -41,6 +41,7 @@ public final class AiResponseParser {
                 null,
                 null,
                 null,
+                null,
                 List.of()
         );
     }

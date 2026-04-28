@@ -12,7 +12,8 @@ public final class RunnableFeatureGate {
             AiGenerationStructuredResponse structuredResponse,
             StepReuseValidationResult stepReuseResult,
             YamlKeyValidationResult yamlKeyResult,
-            AllowedYamlGuardResult allowedYamlGuardResult
+            AllowedYamlGuardResult allowedYamlGuardResult,
+            PageFrameContextGuardResult pageFrameContextGuardResult
     ) {
         List<String> blocking = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
@@ -24,6 +25,7 @@ public final class RunnableFeatureGate {
         boolean stepValidationPassed = stepReuseResult != null && stepReuseResult.passed();
         boolean yamlValidationPassed = yamlKeyResult != null && yamlKeyResult.passed();
         boolean allowedYamlPassed = allowedYamlGuardResult != null && allowedYamlGuardResult.passed();
+        boolean pageFrameContextPassed = pageFrameContextGuardResult != null && pageFrameContextGuardResult.passed();
 
         if (!parseSuccessful) {
             blocking.add("Structured AI response failed to parse");
@@ -54,6 +56,12 @@ public final class RunnableFeatureGate {
                 blocking.addAll(allowedYamlGuardResult.blockingErrors());
             }
         }
+        if (!pageFrameContextPassed) {
+            blocking.add("Page/frame context guard failed");
+            if (pageFrameContextGuardResult != null) {
+                blocking.addAll(pageFrameContextGuardResult.blockingErrors());
+            }
+        }
 
         if (stepReuseResult != null) {
             warnings.addAll(stepReuseResult.warnings());
@@ -63,6 +71,9 @@ public final class RunnableFeatureGate {
         }
         if (allowedYamlGuardResult != null) {
             warnings.addAll(allowedYamlGuardResult.warnings());
+        }
+        if (pageFrameContextGuardResult != null) {
+            warnings.addAll(pageFrameContextGuardResult.warnings());
         }
 
         List<String> uniqueBlocking = new ArrayList<>(new LinkedHashSet<>(blocking));
@@ -76,13 +87,16 @@ public final class RunnableFeatureGate {
                 stepValidationPassed,
                 yamlValidationPassed,
                 allowedYamlPassed,
+                pageFrameContextPassed,
                 stepReuseResult != null ? stepReuseResult.reusePercentage() : 0.0,
                 stepReuseResult != null ? stepReuseResult.totalSteps() : 0,
                 stepReuseResult != null ? stepReuseResult.matchedCount() : 0,
                 stepReuseResult != null ? stepReuseResult.unmatchedCount() : 0,
                 yamlKeyResult != null ? yamlKeyResult.totalKeys() : 0,
                 yamlKeyResult != null ? yamlKeyResult.existingCount() : 0,
-                yamlKeyResult != null ? yamlKeyResult.missingCount() : 0
+                yamlKeyResult != null ? yamlKeyResult.missingCount() : 0,
+                pageFrameContextGuardResult != null ? pageFrameContextGuardResult.frameStepCount() : 0,
+                pageFrameContextGuardResult != null ? pageFrameContextGuardResult.pageStepCount() : 0
         );
     }
 }

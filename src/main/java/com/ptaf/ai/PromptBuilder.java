@@ -45,12 +45,23 @@ public final class PromptBuilder {
                 ALLOWED_YAML_KEYS:
                 %s
 
+                UI_CONTEXT_RULES:
+                DEFAULT_UI_CONTEXT: %s
+                FRAME_ALLOWED_PAGES:
+                %s
+                FRAME_ALLOWED_LOCATORS:
+                %s
+
                 RULES:
                 - You must reuse existing step definitions whenever possible.
                 - You must use only YAML keys from ALLOWED_YAML_KEYS.
                 - Do not invent YAML keys.
                 - If a needed YAML key does not exist, list it in MISSING_YAML_KEYS.
                 - Do not use a missing YAML key inside FEATURE_FILE as if it exists.
+                - Default to page steps.
+                - Use frame steps only when page or locator is explicitly frame-allowed.
+                - Do not use frame steps for login unless login is frame-allowed.
+                - Prefer page steps for normal UI actions.
                 - Prefer patterns from SIMILAR_FEATURES.
                 - Return only the structured output contract.
                 - No markdown outside the required contract.
@@ -82,7 +93,10 @@ public final class PromptBuilder {
                 requirement.trim(),
                 renderSection(similarLimited, "(none)"),
                 renderSection(stepsLimited, "(none)"),
-                renderSection(yamlLimited, "(none)")
+                renderSection(yamlLimited, "(none)"),
+                properties.defaultUiContext(),
+                renderSection(properties.frameAllowedPages(), "(none)"),
+                renderSection(properties.frameAllowedLocators(), "(none)")
         );
     }
 

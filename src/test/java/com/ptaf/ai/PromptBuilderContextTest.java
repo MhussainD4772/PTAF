@@ -35,6 +35,7 @@ class PromptBuilderContextTest {
         assertTrue(prompt.contains("SIMILAR_FEATURES:"));
         assertTrue(prompt.contains("ALLOWED_STEP_DEFINITIONS:"));
         assertTrue(prompt.contains("ALLOWED_YAML_KEYS:"));
+        assertTrue(prompt.contains("UI_CONTEXT_RULES:"));
         assertTrue(prompt.contains("RULES:"));
         assertTrue(prompt.contains("OUTPUT_CONTRACT:"));
 
@@ -43,6 +44,12 @@ class PromptBuilderContextTest {
         assertTrue(prompt.contains("user is on login page"));
         assertTrue(prompt.contains("elements.login.username"));
         assertTrue(prompt.contains("Do not invent YAML keys."));
+        assertTrue(prompt.contains("Default to page steps."));
+        assertTrue(prompt.contains("DEFAULT_UI_CONTEXT: page"));
+        assertTrue(prompt.contains("FRAME_ALLOWED_PAGES:"));
+        assertTrue(prompt.contains("paymentiframe"));
+        assertTrue(prompt.contains("FRAME_ALLOWED_LOCATORS:"));
+        assertTrue(prompt.contains("checkout.secureframe"));
         assertTrue(prompt.contains("list it in MISSING_YAML_KEYS"));
 
         assertTrue(prompt.contains("<<<FEATURE_FILE>>>"));
@@ -89,6 +96,10 @@ class PromptBuilderContextTest {
                     maxSimilarFeatures: %d
                     maxStepDefinitionsInPrompt: %d
                     maxYamlKeysInPrompt: %d
+                  contextRules:
+                    defaultUiContext: page
+                    frameAllowedPages: [paymentIframe]
+                    frameAllowedLocators: [checkout.secureFrame]
                 """.formatted(maxSimilar, maxSteps, maxYaml));
         try {
             Constructor<AiAssistantProperties> ctor = AiAssistantProperties.class.getDeclaredConstructor(Map.class);

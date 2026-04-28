@@ -12,6 +12,7 @@ import com.ptaf.ai.policy.AiPolicy;
 import com.ptaf.ai.validation.StepReuseValidator;
 import com.ptaf.ai.validation.AllowedYamlGuard;
 import com.ptaf.ai.validation.MissingYamlPatchSuggester;
+import com.ptaf.ai.validation.PageFrameContextGuard;
 import com.ptaf.ai.validation.RunnableFeatureGate;
 import com.ptaf.ai.validation.YamlKeyValidator;
 
@@ -64,11 +65,18 @@ public final class FeatureGeneratorService {
         var yamlIndex = YamlKeyIndex.build(projectRoot, properties.yamlPaths());
         var yamlValidation = new YamlKeyValidator().validate(structured, yamlIndex);
         var allowedYamlGuardResult = new AllowedYamlGuard().validate(structured, yamlIndex);
+        var pageFrameContextGuardResult = new PageFrameContextGuard().validate(
+                structured,
+                properties.defaultUiContext(),
+                properties.frameAllowedPages(),
+                properties.frameAllowedLocators()
+        );
         var runnableFeatureResult = new RunnableFeatureGate().evaluate(
                 structured,
                 stepReuseValidation,
                 yamlValidation,
-                allowedYamlGuardResult
+                allowedYamlGuardResult,
+                pageFrameContextGuardResult
         );
         var missingYamlPatchSuggestions = new MissingYamlPatchSuggester().suggest(
                 yamlValidation,
@@ -83,6 +91,7 @@ public final class FeatureGeneratorService {
                 stepReuseValidation,
                 yamlValidation,
                 allowedYamlGuardResult,
+                pageFrameContextGuardResult,
                 runnableFeatureResult,
                 missingYamlPatchSuggestions
         );

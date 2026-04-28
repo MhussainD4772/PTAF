@@ -78,6 +78,8 @@ public final class AiGenerateHttpServer {
                 out.set("stepReuseValidation", JSON.valueToTree(result.stepReuseValidationResult()));
                 out.set("yamlKeyValidation", JSON.valueToTree(result.yamlKeyValidationResult()));
                 out.set("allowedYamlGuard", JSON.valueToTree(result.allowedYamlGuardResult()));
+                out.set("pageFrameContextGuard", JSON.valueToTree(result.pageFrameContextGuardResult()));
+                out.set("runnableFeature", JSON.valueToTree(result.runnableFeatureResult()));
                 out.set("missingYamlPatchSuggestions", JSON.valueToTree(result.missingYamlPatchSuggestions()));
                 ArrayNode trace = JSON.createArrayNode();
                 for (var sp : result.reuseTrace()) {
