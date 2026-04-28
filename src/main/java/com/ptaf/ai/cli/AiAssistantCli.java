@@ -356,7 +356,7 @@ public class AiAssistantCli implements Callable<Integer> {
     @Command(
             name = "serve",
             mixinStandardHelpOptions = true,
-            description = "Localhost API: GET /health, POST /generate"
+            description = "Localhost API/UI: GET /, GET /health, POST /generate-write (preferred), POST /generate (deprecated)"
     )
     static final class ServeCommand implements Callable<Integer> {
 
@@ -372,7 +372,7 @@ public class AiAssistantCli implements Callable<Integer> {
             validateGemini(props);
             HttpServer server = AiGenerateHttpServer.createAndStart(port, projectRoot);
             System.out.println("UI: http://127.0.0.1:" + port + "/");
-            System.out.println("API: POST /generate-write  POST /generate  GET /health");
+            System.out.println("API: POST /generate-write (preferred)  POST /generate (deprecated)  GET /health");
             System.out.println("Press Enter to stop.");
             System.in.read();
             server.stop(0);

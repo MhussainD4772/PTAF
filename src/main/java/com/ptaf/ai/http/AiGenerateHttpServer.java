@@ -22,7 +22,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.Executors;
 
-/** Minimal localhost JSON API for Phase 1. */
+/** Minimal localhost JSON API (prefer /generate-write; /generate is deprecated compatibility). */
 public final class AiGenerateHttpServer {
 
     private static final ObjectMapper JSON = new ObjectMapper();
@@ -93,6 +93,9 @@ public final class AiGenerateHttpServer {
                 }
                 GenerationResult result = service.generate(projectRoot, requirement);
                 ObjectNode out = JSON.createObjectNode();
+                out.put("deprecated", true);
+                out.put("deprecationNotice", "Endpoint /generate is deprecated; use /generate-write.");
+                out.put("preferredEndpoint", "/generate-write");
                 out.put("featureGherkin", result.featureGherkin());
                 out.set("suggestedReusableSteps", JSON.valueToTree(result.suggestedReusableSteps()));
                 out.put("rawModelResponse", result.rawModelResponse());
