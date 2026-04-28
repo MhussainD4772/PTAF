@@ -244,6 +244,9 @@
                                 <include>**/StepReuseValidatorTest.java</include>
                                 <include>**/YamlKeyIndexTest.java</include>
                                 <include>**/YamlKeyValidatorTest.java</include>
+                                <include>**/AllowedYamlGuardTest.java</include>
+                                <include>**/RunnableFeatureGateTest.java</include>
+                                <include>**/MissingYamlPatchSuggesterTest.java</include>
                                 <include>**/GenerationModeEvaluatorTest.java</include>
                                 <include>**/FeatureGeneratorServiceWriteTest.java</include>
                                 <include>**/AiAssistantCliGenerateCommandTest.java</include>
@@ -251,6 +254,7 @@
                                 <include>**/GenerationFlowIntegrationTest.java</include>
                                 <include>**/FrameworkContextCollectorTest.java</include>
                                 <include>**/SimilarFeatureRetrieverTest.java</include>
+                                <include>**/PromptBuilderContextTest.java</include>
                                 <include>**/KeywordOverlapRankerTest.java</include>
                                 <include>**/DuplicateStepDetectorTest.java</include>
                                 <include>**/LogRedactorTest.java</include>

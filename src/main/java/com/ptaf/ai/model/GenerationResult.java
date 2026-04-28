@@ -2,6 +2,9 @@ package com.ptaf.ai.model;
 
 import com.ptaf.ai.validation.StepReuseValidationResult;
 import com.ptaf.ai.validation.YamlKeyValidationResult;
+import com.ptaf.ai.validation.AllowedYamlGuardResult;
+import com.ptaf.ai.validation.MissingYamlPatchSuggestion;
+import com.ptaf.ai.validation.RunnableFeatureResult;
 
 import java.util.List;
 
@@ -15,6 +18,9 @@ public record GenerationResult(
         List<ScoredPattern> reuseTrace,
         AiGenerationStructuredResponse structuredResponse,
         StepReuseValidationResult stepReuseValidationResult,
-        YamlKeyValidationResult yamlKeyValidationResult
+        YamlKeyValidationResult yamlKeyValidationResult,
+        AllowedYamlGuardResult allowedYamlGuardResult,
+        RunnableFeatureResult runnableFeatureResult,
+        List<MissingYamlPatchSuggestion> missingYamlPatchSuggestions
 ) {
 }

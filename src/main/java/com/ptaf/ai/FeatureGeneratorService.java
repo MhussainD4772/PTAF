@@ -1,6 +1,8 @@
 package com.ptaf.ai;
 
 import com.ptaf.ai.config.AiAssistantProperties;
+import com.ptaf.ai.context.FrameworkContextCollector;
+import com.ptaf.ai.context.SimilarFeatureRetriever;
 import com.ptaf.ai.index.StepDefinitionIndex;
 import com.ptaf.ai.index.YamlKeyIndex;
 import com.ptaf.ai.model.GenerationResult;
@@ -8,19 +10,24 @@ import com.ptaf.ai.parser.StructuredAiResponseParser;
 import com.ptaf.ai.audit.AuditLog;
 import com.ptaf.ai.policy.AiPolicy;
 import com.ptaf.ai.validation.StepReuseValidator;
+import com.ptaf.ai.validation.AllowedYamlGuard;
+import com.ptaf.ai.validation.MissingYamlPatchSuggester;
+import com.ptaf.ai.validation.RunnableFeatureGate;
 import com.ptaf.ai.validation.YamlKeyValidator;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 /** Wires context → prompts → Gemini → parse → optional file write. */
 public final class FeatureGeneratorService {
 
     private final AiAssistantProperties properties;
     private final AiModelClient modelClient;
-    private final ContextCollector contextCollector;
+    private final FrameworkContextCollector frameworkContextCollector;
+    private final SimilarFeatureRetriever similarFeatureRetriever;
     private final PromptBuilder promptBuilder;
     private final AiPolicy policy;
 
@@ -36,7 +43,8 @@ public final class FeatureGeneratorService {
         this.properties = properties;
         this.policy = policy;
         this.modelClient = modelClient;
-        this.contextCollector = new ContextCollector(properties);
+        this.frameworkContextCollector = new FrameworkContextCollector(properties);
+        this.similarFeatureRetriever = new SimilarFeatureRetriever(properties);
         this.promptBuilder = new PromptBuilder(properties);
     }
 
@@ -45,23 +53,38 @@ public final class FeatureGeneratorService {
         if (blocked != null) {
             throw new IllegalStateException("Policy rejected requirement: " + blocked);
         }
-        var ctx = contextCollector.collect(projectRoot, requirement);
+        var frameworkContext = frameworkContextCollector.collect(projectRoot);
+        var similar = similarFeatureRetriever.retrieve(requirement, frameworkContext);
         String system = promptBuilder.systemPrompt();
-        String user = promptBuilder.userPrompt(requirement, ctx);
+        String user = promptBuilder.userPrompt(requirement, frameworkContext, similar);
         String raw = modelClient.generate(system, user, properties);
         var structured = StructuredAiResponseParser.parse(raw);
         var stepIndex = StepDefinitionIndex.build(projectRoot, properties.stepDefinitionPaths());
         var stepReuseValidation = new StepReuseValidator().validate(structured, stepIndex);
         var yamlIndex = YamlKeyIndex.build(projectRoot, properties.yamlPaths());
         var yamlValidation = new YamlKeyValidator().validate(structured, yamlIndex);
+        var allowedYamlGuardResult = new AllowedYamlGuard().validate(structured, yamlIndex);
+        var runnableFeatureResult = new RunnableFeatureGate().evaluate(
+                structured,
+                stepReuseValidation,
+                yamlValidation,
+                allowedYamlGuardResult
+        );
+        var missingYamlPatchSuggestions = new MissingYamlPatchSuggester().suggest(
+                yamlValidation,
+                allowedYamlGuardResult
+        );
         var gen = new GenerationResult(
                 structured.featureFile(),
                 structured.reusedSteps(),
                 raw,
-                ctx.rankedStepPatterns(),
+                List.of(),
                 structured,
                 stepReuseValidation,
-                yamlValidation
+                yamlValidation,
+                allowedYamlGuardResult,
+                runnableFeatureResult,
+                missingYamlPatchSuggestions
         );
         AuditLog.append("generate", properties.model(), "success", AuditLog.sha256Prefix(requirement, 16));
         return gen;

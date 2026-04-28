@@ -17,6 +17,8 @@ public final class GenerationModeEvaluator {
         AiGenerationStructuredResponse structured = result.structuredResponse();
         StepReuseValidationResult step = result.stepReuseValidationResult();
         YamlKeyValidationResult yaml = result.yamlKeyValidationResult();
+        AllowedYamlGuardResult guard = result.allowedYamlGuardResult();
+        RunnableFeatureResult runnable = result.runnableFeatureResult();
 
         if (!structured.parseSuccessful()) {
             errors.add("Structured parse failed");
@@ -26,6 +28,11 @@ public final class GenerationModeEvaluator {
         }
         if (result.featureGherkin() == null || result.featureGherkin().isBlank()) {
             errors.add("Generated feature is empty");
+        }
+        if (runnable != null && !runnable.runnable()) {
+            errors.addAll(runnable.blockingReasons());
+        } else if (guard != null && !guard.blockingErrors().isEmpty()) {
+            errors.addAll(guard.blockingErrors());
         }
 
         if (mode == AiGenerationMode.STRICT) {

@@ -103,7 +103,7 @@ public class AiAssistantCli implements Callable<Integer> {
                 if (modeEvaluator.shouldWriteFile(generationMode, blockingErrors)) {
                     written = service.writeFeatureFile(out, result, overwrite);
                 }
-                if (!blockingErrors.isEmpty()) {
+                if (generationMode != AiGenerationMode.PREVIEW && !blockingErrors.isEmpty()) {
                     exitCode = 1;
                 }
             } catch (Exception e) {
@@ -162,6 +162,57 @@ public class AiAssistantCli implements Callable<Integer> {
                 }
                 System.out.println("YAML validation: " + y.existingCount() + "/" + y.totalKeys() + " keys found");
             }
+            if (result != null && result.runnableFeatureResult() != null) {
+                var r = result.runnableFeatureResult();
+                System.out.println("\n=== Runnable Feature Gate ===");
+                System.out.println("Runnable: " + r.runnable());
+                if (!r.blockingReasons().isEmpty()) {
+                    System.out.println("Blocking reasons:");
+                    for (String reason : r.blockingReasons()) {
+                        System.out.println("- " + reason);
+                    }
+                }
+            }
+            if (result != null && result.allowedYamlGuardResult() != null) {
+                var g = result.allowedYamlGuardResult();
+                System.out.println("\n=== Allowed YAML Guard ===");
+                System.out.println("Passed: " + g.passed());
+                if (!g.unknownKeysUsed().isEmpty()) {
+                    System.out.println("Unknown keys used:");
+                    for (String key : g.unknownKeysUsed()) {
+                        System.out.println("- " + key);
+                    }
+                }
+                if (!g.blockingErrors().isEmpty()) {
+                    System.out.println("Blocking errors:");
+                    for (String err : g.blockingErrors()) {
+                        System.out.println("- " + err);
+                    }
+                }
+                if (!g.warnings().isEmpty()) {
+                    System.out.println("Warnings:");
+                    for (String warning : g.warnings()) {
+                        System.out.println("- " + warning);
+                    }
+                }
+            }
+            if (result != null && result.missingYamlPatchSuggestions() != null
+                    && !result.missingYamlPatchSuggestions().isEmpty()) {
+                System.out.println("\n=== Missing YAML Patch Suggestions ===");
+                for (var suggestion : result.missingYamlPatchSuggestions()) {
+                    System.out.println("Key: " + suggestion.missingKey());
+                    System.out.println("Target: " + suggestion.targetFolder());
+                    System.out.println("Patch:");
+                    System.out.println(suggestion.suggestedYaml());
+                    if (!suggestion.warnings().isEmpty()) {
+                        System.out.println("Warnings:");
+                        for (String warning : suggestion.warnings()) {
+                            System.out.println("- " + warning);
+                        }
+                    }
+                    System.out.println();
+                }
+            }
 
             List<String> warnings = collectWarnings(result);
             AiGenerationAuditRecord auditRecord = buildAuditRecord(
@@ -206,6 +257,17 @@ public class AiAssistantCli implements Callable<Integer> {
             }
             if (result.yamlKeyValidationResult() != null) {
                 warnings.addAll(result.yamlKeyValidationResult().warnings());
+            }
+            if (result.allowedYamlGuardResult() != null) {
+                warnings.addAll(result.allowedYamlGuardResult().warnings());
+            }
+            if (result.runnableFeatureResult() != null) {
+                warnings.addAll(result.runnableFeatureResult().warnings());
+            }
+            if (result.missingYamlPatchSuggestions() != null) {
+                for (var suggestion : result.missingYamlPatchSuggestions()) {
+                    warnings.addAll(suggestion.warnings());
+                }
             }
             return warnings;
         }

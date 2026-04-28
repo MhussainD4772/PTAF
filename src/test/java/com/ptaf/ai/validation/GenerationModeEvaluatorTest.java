@@ -58,6 +58,21 @@ class GenerationModeEvaluatorTest {
         assertTrue(errors.isEmpty());
     }
 
+    @Test
+    void writeModeBlocksNonRunnableFeature() {
+        GenerationResult result = resultWithNonRunnableGate();
+        var errors = evaluator.blockingErrors(AiGenerationMode.WRITE, result);
+        assertFalse(errors.isEmpty());
+        assertFalse(evaluator.shouldWriteFile(AiGenerationMode.WRITE, errors));
+    }
+
+    @Test
+    void strictModeFailsNonRunnableFeature() {
+        GenerationResult result = resultWithNonRunnableGate();
+        var errors = evaluator.blockingErrors(AiGenerationMode.STRICT, result);
+        assertTrue(errors.stream().anyMatch(e -> e.contains("Unknown YAML key used")));
+    }
+
     private static GenerationResult validResult() {
         AiGenerationStructuredResponse structured = new AiGenerationStructuredResponse();
         structured.setParseSuccessful(true);
@@ -88,7 +103,10 @@ class GenerationModeEvaluatorTest {
                 List.of(),
                 structured,
                 step,
-                yaml
+                yaml,
+                null,
+                runnable(true),
+                List.of()
         );
     }
 
@@ -103,7 +121,10 @@ class GenerationModeEvaluatorTest {
                 List.of(),
                 structured,
                 null,
-                null
+                null,
+                null,
+                null,
+                List.of()
         );
     }
 
@@ -123,7 +144,10 @@ class GenerationModeEvaluatorTest {
                 base.reuseTrace(),
                 base.structuredResponse(),
                 base.stepReuseValidationResult(),
-                yaml
+                yaml,
+                null,
+                runnable(false),
+                List.of()
         );
     }
 
@@ -144,7 +168,53 @@ class GenerationModeEvaluatorTest {
                 base.reuseTrace(),
                 base.structuredResponse(),
                 step,
-                base.yamlKeyValidationResult()
+                base.yamlKeyValidationResult(),
+                null,
+                runnable(false),
+                List.of()
+        );
+    }
+
+    private static GenerationResult resultWithNonRunnableGate() {
+        GenerationResult base = validResult();
+        return new GenerationResult(
+                base.featureGherkin(),
+                base.suggestedReusableSteps(),
+                base.rawModelResponse(),
+                base.reuseTrace(),
+                base.structuredResponse(),
+                base.stepReuseValidationResult(),
+                base.yamlKeyValidationResult(),
+                new AllowedYamlGuardResult(
+                        false,
+                        List.of(),
+                        List.of("elements.login.submitbutton"),
+                        List.of(),
+                        List.of(),
+                        List.of(),
+                        List.of("Unknown YAML key used: elements.login.submitbutton")
+                ),
+                runnable(false),
+                List.of()
+        );
+    }
+
+    private static RunnableFeatureResult runnable(boolean runnable) {
+        return new RunnableFeatureResult(
+                runnable,
+                runnable ? List.of() : List.of("Unknown YAML key used: elements.login.submitbutton"),
+                List.of(),
+                runnable,
+                true,
+                true,
+                runnable,
+                100.0,
+                1,
+                1,
+                0,
+                1,
+                1,
+                runnable ? 0 : 1
         );
     }
 }

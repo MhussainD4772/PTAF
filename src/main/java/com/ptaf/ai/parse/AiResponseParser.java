@@ -38,7 +38,10 @@ public final class AiResponseParser {
                 Collections.emptyList(),
                 new AiGenerationStructuredResponse(),
                 null,
-                null
+                null,
+                null,
+                null,
+                List.of()
         );
     }
 

@@ -59,6 +59,6 @@ class FeatureGeneratorServiceWriteTest {
         YamlKeyValidationResult yaml = new YamlKeyValidationResult(
                 List.of(), List.of(), List.of(), Map.of(), 0, 0, 0, true, List.of()
         );
-        return new GenerationResult("Feature: New", List.of(), "", List.of(), structured, step, yaml);
+        return new GenerationResult("Feature: New", List.of(), "", List.of(), structured, step, yaml, null, null, List.of());
     }
 }

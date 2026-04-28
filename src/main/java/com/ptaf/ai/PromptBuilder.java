@@ -1,13 +1,13 @@
 package com.ptaf.ai;
 
 import com.ptaf.ai.config.AiAssistantProperties;
-import com.ptaf.ai.model.ProjectContext;
-import com.ptaf.ai.model.ScoredPattern;
+import com.ptaf.ai.context.FrameworkGenerationContext;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Fixed templates so the model returns parseable sections; Phase 2 adds ranked framework context.
+ * Builds a strict, context-grounded generation prompt.
  */
 public final class PromptBuilder {
 
@@ -20,42 +20,44 @@ public final class PromptBuilder {
     public String systemPrompt() {
         return """
                 You are a senior test automation engineer for a Java + Cucumber + Playwright framework.
-                Draft NEW Gherkin that matches the team's style. Prefer reusing existing step wording from
-                RANKED_STEP_PATTERNS_WITH_SOURCES when a step fits the requirement.
-
-                Output rules:
-                - Return ONLY the required marker blocks; no markdown, no commentary, no extra text.
-                - Always include all required sections, even if a section is empty.
-                - Gherkin must include a Feature line and at least one Scenario with steps.
-                - Steps are plain Gherkin only (Given/When/Then/And/But).
-                - Prefer reusing existing steps from ranked patterns when possible.
+                Your job is to generate runnable feature content aligned to existing framework assets.
                 """.strip();
     }
 
-    public String userPrompt(String requirement, ProjectContext ctx) {
-        int budget = properties.maxTotalContextChars();
-        String features = truncate(ctx.featuresSection(), (int) (budget * 0.24));
-        String steps = truncate(ctx.stepDefinitionsSection(), (int) (budget * 0.24));
-        String fw = truncate(ctx.frameworkSection(), (int) (budget * 0.38));
-        String rankedPatternsBlock = formatRankedPatterns(ctx.rankedStepPatterns());
-
+    public String userPrompt(
+            String requirement,
+            FrameworkGenerationContext context,
+            List<String> similarFeatureSnippets
+    ) {
+        List<String> similarLimited = limit(similarFeatureSnippets, properties.contextMaxSimilarFeatures());
+        List<String> stepsLimited = limit(context.existingStepDefinitions(), properties.contextMaxStepDefinitionsInPrompt());
+        List<String> yamlLimited = limit(context.existingYamlKeys(), properties.contextMaxYamlKeysInPrompt());
         return """
-                REQUIREMENT / USER STORY:
+                REQUIREMENT:
                 %s
 
-                EXISTING_FEATURES (keyword-ranked excerpts):
+                SIMILAR_FEATURES:
                 %s
 
-                EXISTING_STEP_DEFINITIONS (keyword-ranked excerpts):
+                ALLOWED_STEP_DEFINITIONS:
                 %s
 
-                FRAMEWORK_CONTEXT — hooks, page objects, element YAML, config (keyword-ranked excerpts):
+                ALLOWED_YAML_KEYS:
                 %s
 
-                RANKED_STEP_PATTERNS_WITH_SOURCES (reuse these when possible; path = declaring file):
-                %s
+                RULES:
+                - You must reuse existing step definitions whenever possible.
+                - You must use only YAML keys from ALLOWED_YAML_KEYS.
+                - Do not invent YAML keys.
+                - If a needed YAML key does not exist, list it in MISSING_YAML_KEYS.
+                - Do not use a missing YAML key inside FEATURE_FILE as if it exists.
+                - Prefer patterns from SIMILAR_FEATURES.
+                - Return only the structured output contract.
+                - No markdown outside the required contract.
+                - Always include all contract sections, even if empty.
+                - Gherkin must include a Feature and at least one Scenario.
 
-                Respond using EXACTLY this structure (no markdown code fences):
+                OUTPUT_CONTRACT:
                 <<<FEATURE_FILE>>>
                 Feature: ...
                   Scenario: ...
@@ -78,33 +80,32 @@ public final class PromptBuilder {
                 <<<END_WARNINGS>>>
                 """.formatted(
                 requirement.trim(),
-                features,
-                steps,
-                fw,
-                rankedPatternsBlock
+                renderSection(similarLimited, "(none)"),
+                renderSection(stepsLimited, "(none)"),
+                renderSection(yamlLimited, "(none)")
         );
     }
 
-    private static String formatRankedPatterns(List<ScoredPattern> ranked) {
-        if (ranked == null || ranked.isEmpty()) {
-            return "(none)";
+    private static List<String> limit(List<String> items, int max) {
+        if (items == null || items.isEmpty() || max <= 0) {
+            return List.of();
         }
-        StringBuilder sb = new StringBuilder();
-        for (ScoredPattern sp : ranked) {
-            sb.append(String.format("%.1f", sp.score()))
-                    .append(" | ")
-                    .append(sp.sourceRelativePath())
-                    .append(" | ")
-                    .append(sp.pattern())
-                    .append("\n");
+        if (items.size() <= max) {
+            return items;
         }
-        return sb.toString();
+        List<String> out = new ArrayList<>(items.subList(0, max));
+        out.add("[TRUNCATED: showing " + max + " of " + items.size() + "]");
+        return out;
     }
 
-    private static String truncate(String text, int maxChars) {
-        if (text == null || text.length() <= maxChars) {
-            return text != null ? text : "";
+    private static String renderSection(List<String> lines, String emptyPlaceholder) {
+        if (lines == null || lines.isEmpty()) {
+            return emptyPlaceholder;
         }
-        return text.substring(0, maxChars) + "\n[TRUNCATED]\n";
+        StringBuilder sb = new StringBuilder();
+        for (String line : lines) {
+            sb.append("- ").append(line).append("\n");
+        }
+        return sb.toString().trim();
     }
 }
