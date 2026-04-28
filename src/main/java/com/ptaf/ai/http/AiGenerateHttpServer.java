@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ptaf.ai.FeatureGeneratorService;
 import com.ptaf.ai.config.AiAssistantProperties;
 import com.ptaf.ai.model.AiGenerationMode;
+import com.ptaf.ai.model.AiGenerationStructuredResponse;
 import com.ptaf.ai.model.GenerationResult;
 import com.ptaf.ai.validation.GenerationModeEvaluator;
 import com.sun.net.httpserver.HttpExchange;
@@ -95,7 +96,7 @@ public final class AiGenerateHttpServer {
                 out.put("featureGherkin", result.featureGherkin());
                 out.set("suggestedReusableSteps", JSON.valueToTree(result.suggestedReusableSteps()));
                 out.put("rawModelResponse", result.rawModelResponse());
-                out.set("structuredResponse", JSON.valueToTree(result.structuredResponse()));
+                out.set("structuredResponse", toJson(result.structuredResponse()));
                 out.set("stepReuseValidation", JSON.valueToTree(result.stepReuseValidationResult()));
                 out.set("yamlKeyValidation", JSON.valueToTree(result.yamlKeyValidationResult()));
                 out.set("allowedYamlGuard", JSON.valueToTree(result.allowedYamlGuardResult()));
@@ -159,7 +160,16 @@ public final class AiGenerateHttpServer {
                 out.put("fileWritten", written != null);
                 out.put("outputPath", written != null ? written.toString() : output.toString());
                 out.set("blockingErrors", JSON.valueToTree(blockingErrors));
-                out.set("result", JSON.valueToTree(result));
+                out.put("featureGherkin", result.featureGherkin());
+                out.set("suggestedReusableSteps", JSON.valueToTree(result.suggestedReusableSteps()));
+                out.put("rawModelResponse", result.rawModelResponse());
+                out.set("structuredResponse", toJson(result.structuredResponse()));
+                out.set("stepReuseValidation", JSON.valueToTree(result.stepReuseValidationResult()));
+                out.set("yamlKeyValidation", JSON.valueToTree(result.yamlKeyValidationResult()));
+                out.set("allowedYamlGuard", JSON.valueToTree(result.allowedYamlGuardResult()));
+                out.set("pageFrameContextGuard", JSON.valueToTree(result.pageFrameContextGuardResult()));
+                out.set("runnableFeature", JSON.valueToTree(result.runnableFeatureResult()));
+                out.set("missingYamlPatchSuggestions", JSON.valueToTree(result.missingYamlPatchSuggestions()));
                 send(ex, blockingErrors.isEmpty() || mode == AiGenerationMode.PREVIEW ? 200 : 422, JSON.writeValueAsString(out));
             } catch (Exception e) {
                 ObjectNode err = JSON.createObjectNode();
@@ -176,6 +186,22 @@ public final class AiGenerateHttpServer {
         try (OutputStream os = ex.getResponseBody()) {
             os.write(bytes);
         }
+    }
+
+    private static ObjectNode toJson(AiGenerationStructuredResponse response) {
+        ObjectNode out = JSON.createObjectNode();
+        if (response == null) {
+            return out;
+        }
+        out.put("featureFile", response.featureFile());
+        out.set("reusedSteps", JSON.valueToTree(response.reusedSteps()));
+        out.set("newStepsNeeded", JSON.valueToTree(response.newStepsNeeded()));
+        out.set("yamlKeysUsed", JSON.valueToTree(response.yamlKeysUsed()));
+        out.set("missingYamlKeys", JSON.valueToTree(response.missingYamlKeys()));
+        out.set("warnings", JSON.valueToTree(response.warnings()));
+        out.put("parseSuccessful", response.parseSuccessful());
+        out.set("parseErrors", JSON.valueToTree(response.parseErrors()));
+        return out;
     }
 
     private static final String UI_HTML = """
