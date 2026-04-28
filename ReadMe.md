@@ -214,6 +214,28 @@ Reports are stored in the `target/` directory:
 * **HTML Report**: `target/cucumber-reports.html`, `target/api-cucumber-reports.html`, etc.
 * **Screenshots**: Automatically captured for failed UI steps and embedded in the report.
 
+## AI Feature Generation (Phase 1 Complete)
+
+The AI generation pipeline is now production-safe for Phase 1 with:
+- structured AI output parsing,
+- step reuse validation,
+- YAML key validation,
+- mode handling (`preview`, `write`, `strict`),
+- JSONL audit logging.
+
+Examples:
+
+```bash
+# Preview only (default): parse + validate + summary, no file write
+mvn exec:java -Dexec.mainClass=com.ptaf.ai.cli.AiAssistantCli -Dexec.args="generate --requirement \"login test\" --mode preview"
+
+# Write mode: writes feature only when blocking checks pass
+mvn exec:java -Dexec.mainClass=com.ptaf.ai.cli.AiAssistantCli -Dexec.args="generate --requirement \"login test\" --mode write --output target/ai-proposals/login.feature"
+
+# Strict mode: fails on schema/validation safety gates
+mvn exec:java -Dexec.mainClass=com.ptaf.ai.cli.AiAssistantCli -Dexec.args="generate --requirement \"login test\" --mode strict"
+```
+
 ## Conclusion
 
 The **FNB PTAF** is designed to be a flexible, scalable, and easy-to-maintain unified testing solution. By leveraging its layered architecture and reusable components, teams can significantly improve the speed and reliability of testing across all layers of our applications, ensuring a higher standard of quality and faster feedback cycles.

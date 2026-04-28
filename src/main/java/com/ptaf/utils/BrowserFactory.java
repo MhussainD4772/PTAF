@@ -81,6 +81,8 @@ public class BrowserFactory {
     public static BrowserContext createContextWithVideo(Browser browser) {
         boolean recordVideo = Boolean.parseBoolean(videoCapture);
         Browser.NewContextOptions contextOptions = new Browser.NewContextOptions();
+        // QA environments may use non-public/self-signed certs; allow navigation despite cert warnings.
+        contextOptions.setIgnoreHTTPSErrors(true);
 
         if (recordVideo) {
             logger.info("Video capture enabled.");
