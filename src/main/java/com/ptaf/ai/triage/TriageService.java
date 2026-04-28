@@ -1,9 +1,15 @@
 package com.ptaf.ai.triage;
 
 import com.ptaf.ai.GeminiClient;
-import com.ptaf.ai.audit.AuditLog;
+import com.ptaf.ai.audit.AiGenerationAuditLogger;
+import com.ptaf.ai.audit.AiGenerationAuditRecord;
 import com.ptaf.ai.config.AiAssistantProperties;
 import com.ptaf.ai.policy.AiPolicy;
+
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Phase 4: sends failure logs / stack traces to Gemini for a short structured triage note.
@@ -36,7 +42,31 @@ public final class TriageService {
 
         String user = "LOG EXCERPT:\n" + safe;
         String out = client.generateRaw(system, user, props);
-        AuditLog.append("triage", props.model(), "success", AuditLog.sha256Prefix(safe, 16));
+        AiGenerationAuditRecord auditRecord = new AiGenerationAuditRecord(
+                UUID.randomUUID().toString(),
+                Instant.now().toString(),
+                "triage",
+                "service",
+                props.model(),
+                props.promptVersion(),
+                AiGenerationAuditLogger.sha256(safe),
+                "n/a",
+                true,
+                true,
+                true,
+                false,
+                0,
+                0,
+                0,
+                List.of(),
+                List.of()
+        );
+        new AiGenerationAuditLogger().append(
+                Path.of(System.getProperty("user.dir")),
+                props.auditEnabled(),
+                props.auditOutputPath(),
+                auditRecord
+        );
         return out;
     }
 }

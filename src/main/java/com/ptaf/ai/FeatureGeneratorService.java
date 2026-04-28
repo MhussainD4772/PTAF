@@ -7,7 +7,8 @@ import com.ptaf.ai.index.StepDefinitionIndex;
 import com.ptaf.ai.index.YamlKeyIndex;
 import com.ptaf.ai.model.GenerationResult;
 import com.ptaf.ai.parser.StructuredAiResponseParser;
-import com.ptaf.ai.audit.AuditLog;
+import com.ptaf.ai.audit.AiGenerationAuditLogger;
+import com.ptaf.ai.audit.AiGenerationAuditRecord;
 import com.ptaf.ai.policy.AiPolicy;
 import com.ptaf.ai.validation.StepReuseValidator;
 import com.ptaf.ai.validation.AllowedYamlGuard;
@@ -20,7 +21,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 /** Wires context → prompts → Gemini → parse → optional file write. */
 public final class FeatureGeneratorService {
@@ -95,7 +98,26 @@ public final class FeatureGeneratorService {
                 runnableFeatureResult,
                 missingYamlPatchSuggestions
         );
-        AuditLog.append("generate", properties.model(), "success", AuditLog.sha256Prefix(requirement, 16));
+        AiGenerationAuditRecord auditRecord = new AiGenerationAuditRecord(
+                UUID.randomUUID().toString(),
+                Instant.now().toString(),
+                "generate",
+                "service",
+                properties.model(),
+                properties.promptVersion(),
+                AiGenerationAuditLogger.sha256(requirement),
+                "n/a",
+                structured.parseSuccessful(),
+                stepReuseValidation.passed(),
+                yamlValidation.passed(),
+                false,
+                structured.reusedSteps().size(),
+                structured.newStepsNeeded().size(),
+                yamlValidation.missingCount(),
+                List.of(),
+                List.of()
+        );
+        new AiGenerationAuditLogger().append(projectRoot, properties.auditEnabled(), properties.auditOutputPath(), auditRecord);
         return gen;
     }
 
