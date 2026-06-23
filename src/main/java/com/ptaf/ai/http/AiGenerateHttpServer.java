@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ptaf.ai.FeatureGeneratorService;
+import com.ptaf.ai.audit.GenerationAuditSupport;
 import com.ptaf.ai.config.AiAssistantProperties;
 import com.ptaf.ai.model.AiGenerationMode;
 import com.ptaf.ai.model.AiGenerationStructuredResponse;
@@ -92,6 +93,17 @@ public final class AiGenerateHttpServer {
                     return;
                 }
                 GenerationResult result = service.generate(projectRoot, requirement);
+                List<String> blockingErrors = List.of();
+                GenerationAuditSupport.append(
+                        projectRoot,
+                        new AiAssistantProperties(),
+                        AiGenerationMode.PREVIEW,
+                        requirement,
+                        projectRoot.resolve("target/ai-proposals/generated.feature"),
+                        null,
+                        result,
+                        blockingErrors
+                );
                 ObjectNode out = JSON.createObjectNode();
                 out.put("deprecated", true);
                 out.put("deprecationNotice", "Endpoint /generate is deprecated; use /generate-write.");
@@ -157,6 +169,17 @@ public final class AiGenerateHttpServer {
                 if (new GenerationModeEvaluator().shouldWriteFile(mode, blockingErrors)) {
                     written = service.writeFeatureFile(output, result, overwrite);
                 }
+
+                GenerationAuditSupport.append(
+                        projectRoot,
+                        new AiAssistantProperties(),
+                        mode,
+                        requirement,
+                        output,
+                        written,
+                        result,
+                        blockingErrors
+                );
 
                 ObjectNode out = JSON.createObjectNode();
                 out.put("mode", mode.name());

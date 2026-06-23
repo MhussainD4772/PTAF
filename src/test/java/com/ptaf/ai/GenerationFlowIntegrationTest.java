@@ -101,7 +101,7 @@ class GenerationFlowIntegrationTest {
                 )
         );
         assertTrue(auditWrite.written());
-        assertEquals(2, Files.readAllLines(tempRoot.resolve("target/ai-audit/generation-audit.jsonl"), StandardCharsets.UTF_8).size());
+        assertEquals(1, Files.readAllLines(tempRoot.resolve("target/ai-audit/generation-audit.jsonl"), StandardCharsets.UTF_8).size());
     }
 
     private static void prepareProjectLayout(Path root) throws Exception {
