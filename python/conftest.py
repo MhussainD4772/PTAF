@@ -10,6 +10,8 @@ import pytest
 from playwright.sync_api import Browser, BrowserContext, Page, Playwright, sync_playwright
 
 from ptaf import hooks
+from ptaf.api.api_client import ApiRequestHandler
+from ptaf.db.db_handler import DatabaseHandler, is_database_configured
 from ptaf.ui.page_common import PageCommonMethods
 from ptaf.utils import browser_factory, config, scenario_util
 
@@ -19,13 +21,11 @@ BrowserStack = tuple[Browser, BrowserContext, Page]
 
 
 def _dispose_api_context() -> None:
-    # TODO(migration): port ApiRequestHandler.disposeContext() when API layer lands.
-    pass
+    ApiRequestHandler.dispose_context()
 
 
 def _close_db_connection() -> None:
-    # TODO(migration): port DatabaseHandler.closeConnection() when DB layer lands.
-    pass
+    DatabaseHandler.close_connection()
 
 
 def _has_last_scenario_marker(request: pytest.FixtureRequest) -> bool:
@@ -86,6 +86,17 @@ def _close_browser(browser: Browser | None) -> None:
         logger.info("Browser closed.")
     except Exception as exc:
         logger.error("Error closing the browser: %s", exc, exc_info=True)
+
+
+@pytest.fixture(autouse=True)
+def _skip_db_tests_when_unconfigured(request: pytest.FixtureRequest) -> None:
+    if request.node.get_closest_marker("db") is None:
+        return
+    if not is_database_configured():
+        pytest.skip(
+            "Database not configured: set DB_PASSWORD and ensure PostgreSQL/SQL "
+            "Server is reachable per resources/config/config.yml"
+        )
 
 
 @pytest.fixture(scope="session")

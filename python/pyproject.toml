@@ -13,6 +13,7 @@ dependencies = [
     "psycopg[binary]",
     "pyodbc",
     "python-dotenv",
+    "jsonpath-ng>=1.8.0",
 ]
 
 [build-system]

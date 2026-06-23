@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pytest_bdd import given, parsers, then, when
 
-from ptaf.api.methods.api_common_methods import ApiCommonMethods
+from ptaf.api.api_common import ApiCommonMethods
 
 _api_methods = ApiCommonMethods()
 

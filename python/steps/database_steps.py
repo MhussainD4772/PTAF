@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pytest_bdd import given, parsers, then, when
 
-from ptaf.db.pages.database_common_methods import DatabaseCommonMethods
+from ptaf.db.db_common import DatabaseCommonMethods
 
 _db_methods = DatabaseCommonMethods()
 
