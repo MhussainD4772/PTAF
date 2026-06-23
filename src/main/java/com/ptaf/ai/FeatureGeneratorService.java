@@ -7,7 +7,6 @@ import com.ptaf.ai.index.StepDefinitionIndex;
 import com.ptaf.ai.index.YamlKeyIndex;
 import com.ptaf.ai.model.GenerationResult;
 import com.ptaf.ai.parser.StructuredAiResponseParser;
-import com.ptaf.ai.audit.AuditLog;
 import com.ptaf.ai.policy.AiPolicy;
 import com.ptaf.ai.validation.StepReuseValidator;
 import com.ptaf.ai.validation.AllowedYamlGuard;
@@ -95,7 +94,6 @@ public final class FeatureGeneratorService {
                 runnableFeatureResult,
                 missingYamlPatchSuggestions
         );
-        AuditLog.append("generate", properties.model(), "success", AuditLog.sha256Prefix(requirement, 16));
         return gen;
     }
 

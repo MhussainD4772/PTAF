@@ -214,27 +214,75 @@ Reports are stored in the `target/` directory:
 * **HTML Report**: `target/cucumber-reports.html`, `target/api-cucumber-reports.html`, etc.
 * **Screenshots**: Automatically captured for failed UI steps and embedded in the report.
 
-## AI Feature Generation (Phase 1 Complete)
+## AI Assistant (Phases 1–5 Complete)
 
-The AI generation pipeline is now production-safe for Phase 1 with:
-- structured AI output parsing,
-- step reuse validation,
-- YAML key validation,
-- mode handling (`preview`, `write`, `strict`),
-- JSONL audit logging.
+The PTAF AI assistant generates runnable Cucumber `.feature` files from natural-language requirements, grounded in existing step definitions and YAML keys.
 
-Examples:
+### Setup
+
+1. Copy `.env.example` to `.env` in the project root.
+2. Set `GEMINI_API_KEY` in `.env` (never commit secrets).
+3. Optional: set `GEMINI_MODEL` to override the model in `src/main/resources/config/ai_assistant.yml`.
+
+### Capabilities by phase
+
+| Phase | What shipped |
+|-------|----------------|
+| **1** | Structured AI output, step reuse validation, YAML key validation, `preview`/`write`/`strict` modes, JSONL audit logging |
+| **2** | Framework context grounding, similar-feature retrieval, allowed YAML guard, runnable feature gate, missing YAML patch suggestions |
+| **3** | Quality gate — Gherkin syntax checks and duplicate step detection (`quality` command, `-Pai-quality` Maven profile) |
+| **4** | Policy guardrails, log redaction, failure triage, telemetry (`triage`, `telemetry-report`) |
+| **5** | Legacy code cleanup, unified audit path, deprecated `/generate` HTTP endpoint, runner naming polish |
+
+### CLI commands
 
 ```bash
-# Preview only (default): parse + validate + summary, no file write
-mvn exec:java -Dexec.mainClass=com.ptaf.ai.cli.AiAssistantCli -Dexec.args="generate --requirement \"login test\" --mode preview"
+# Preview (default): validate only, no file write
+mvn exec:java -Dexec.mainClass=com.ptaf.ai.cli.AiAssistantCli \
+  -Dexec.args='generate --requirement "login test" --mode preview'
 
-# Write mode: writes feature only when blocking checks pass
-mvn exec:java -Dexec.mainClass=com.ptaf.ai.cli.AiAssistantCli -Dexec.args="generate --requirement \"login test\" --mode write --output target/ai-proposals/login.feature"
+# Write: saves .feature when all blocking checks pass
+mvn exec:java -Dexec.mainClass=com.ptaf.ai.cli.AiAssistantCli \
+  -Dexec.args='generate --requirement "login test" --mode write --output target/ai-proposals/login.feature'
 
-# Strict mode: fails on schema/validation safety gates
-mvn exec:java -Dexec.mainClass=com.ptaf.ai.cli.AiAssistantCli -Dexec.args="generate --requirement \"login test\" --mode strict"
+# Strict: fails on any validation safety gate
+mvn exec:java -Dexec.mainClass=com.ptaf.ai.cli.AiAssistantCli \
+  -Dexec.args='generate --requirement "login test" --mode strict'
+
+# Local web UI + HTTP API (port 8787)
+mvn exec:java -Dexec.mainClass=com.ptaf.ai.cli.AiUiLauncher
+
+# Quality gate on all feature files
+mvn exec:java -Dexec.mainClass=com.ptaf.ai.cli.AiAssistantCli -Dexec.args='quality --strict'
+
+# Failure triage from log excerpt
+mvn exec:java -Dexec.mainClass=com.ptaf.ai.cli.AiAssistantCli \
+  -Dexec.args='triage --text "stack trace here..."'
+
+# Telemetry HTML summary
+mvn exec:java -Dexec.mainClass=com.ptaf.ai.cli.AiAssistantCli -Dexec.args='telemetry-report'
 ```
+
+### HTTP API (when `serve` is running)
+
+| Endpoint | Status | Purpose |
+|----------|--------|---------|
+| `GET /` | Active | Browser UI for generation |
+| `GET /health` | Active | Health check |
+| `POST /generate-write` | **Preferred** | Generate with mode, output path, and optional write |
+| `POST /generate` | Deprecated | Preview-only compatibility; use `/generate-write` instead |
+
+### AI test suites
+
+```bash
+# Run all AI unit/integration tests
+mvn -Pai-parser test
+
+# Run quality gate in CI-style verify phase
+mvn verify -Pai-quality -DskipTests
+```
+
+Audit logs are written to `target/ai-audit/generation-audit.jsonl` (one record per CLI or HTTP generation call).
 
 ## Conclusion
 

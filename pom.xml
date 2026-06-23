@@ -238,7 +238,6 @@
                         </dependencies>
                         <configuration>
                             <includes>
-                                <include>**/AiResponseParserTest.java</include>
                                 <include>**/StructuredAiResponseParserTest.java</include>
                                 <include>**/StepDefinitionIndexTest.java</include>
                                 <include>**/StepReuseValidatorTest.java</include>
@@ -255,7 +254,6 @@
                                 <include>**/FrameworkContextCollectorTest.java</include>
                                 <include>**/SimilarFeatureRetrieverTest.java</include>
                                 <include>**/PromptBuilderContextTest.java</include>
-                                <include>**/KeywordOverlapRankerTest.java</include>
                                 <include>**/DuplicateStepDetectorTest.java</include>
                                 <include>**/LogRedactorTest.java</include>
                             </includes>

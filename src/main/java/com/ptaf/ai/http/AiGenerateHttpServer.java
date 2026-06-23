@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ptaf.ai.FeatureGeneratorService;
+import com.ptaf.ai.audit.GenerationAuditSupport;
 import com.ptaf.ai.config.AiAssistantProperties;
 import com.ptaf.ai.model.AiGenerationMode;
 import com.ptaf.ai.model.AiGenerationStructuredResponse;
@@ -22,7 +23,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.Executors;
 
-/** Minimal localhost JSON API for Phase 1. */
+/** Minimal localhost JSON API (prefer /generate-write; /generate is deprecated compatibility). */
 public final class AiGenerateHttpServer {
 
     private static final ObjectMapper JSON = new ObjectMapper();
@@ -92,7 +93,21 @@ public final class AiGenerateHttpServer {
                     return;
                 }
                 GenerationResult result = service.generate(projectRoot, requirement);
+                List<String> blockingErrors = List.of();
+                GenerationAuditSupport.append(
+                        projectRoot,
+                        new AiAssistantProperties(),
+                        AiGenerationMode.PREVIEW,
+                        requirement,
+                        projectRoot.resolve("target/ai-proposals/generated.feature"),
+                        null,
+                        result,
+                        blockingErrors
+                );
                 ObjectNode out = JSON.createObjectNode();
+                out.put("deprecated", true);
+                out.put("deprecationNotice", "Endpoint /generate is deprecated; use /generate-write.");
+                out.put("preferredEndpoint", "/generate-write");
                 out.put("featureGherkin", result.featureGherkin());
                 out.set("suggestedReusableSteps", JSON.valueToTree(result.suggestedReusableSteps()));
                 out.put("rawModelResponse", result.rawModelResponse());
@@ -154,6 +169,17 @@ public final class AiGenerateHttpServer {
                 if (new GenerationModeEvaluator().shouldWriteFile(mode, blockingErrors)) {
                     written = service.writeFeatureFile(output, result, overwrite);
                 }
+
+                GenerationAuditSupport.append(
+                        projectRoot,
+                        new AiAssistantProperties(),
+                        mode,
+                        requirement,
+                        output,
+                        written,
+                        result,
+                        blockingErrors
+                );
 
                 ObjectNode out = JSON.createObjectNode();
                 out.put("mode", mode.name());

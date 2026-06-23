@@ -2,7 +2,7 @@ package com.ptaf.ai.cli;
 
 import com.ptaf.ai.FeatureGeneratorService;
 import com.ptaf.ai.audit.AiGenerationAuditLogger;
-import com.ptaf.ai.audit.AiGenerationAuditRecord;
+import com.ptaf.ai.audit.GenerationAuditSupport;
 import com.ptaf.ai.config.AiAssistantProperties;
 import com.ptaf.ai.http.AiGenerateHttpServer;
 import com.ptaf.ai.model.AiGenerationMode;
@@ -20,11 +20,9 @@ import picocli.CommandLine.Option;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 
 /**
@@ -233,19 +231,16 @@ public class AiAssistantCli implements Callable<Integer> {
                 }
             }
 
-            List<String> warnings = collectWarnings(result);
-            AiGenerationAuditRecord auditRecord = buildAuditRecord(
-                    generationMode,
+            AiGenerationAuditLogger.WriteResult auditWrite = GenerationAuditSupport.append(
+                    projectRoot,
                     props,
+                    generationMode,
                     req,
                     out,
                     written,
                     result,
-                    blockingErrors,
-                    warnings
+                    blockingErrors
             );
-            AiGenerationAuditLogger.WriteResult auditWrite = new AiGenerationAuditLogger()
-                    .append(projectRoot, props.auditEnabled(), props.auditOutputPath(), auditRecord);
             if (auditWrite.written()) {
                 System.out.println("\n=== Audit ===");
                 System.out.println("Audit log written:");
@@ -263,78 +258,6 @@ public class AiAssistantCli implements Callable<Integer> {
                 System.out.println("- " + error);
             }
             return exitCode;
-        }
-
-        private static List<String> collectWarnings(GenerationResult result) {
-            if (result == null) {
-                return List.of();
-            }
-            List<String> warnings = new ArrayList<>();
-            warnings.addAll(result.structuredResponse().warnings());
-            if (result.stepReuseValidationResult() != null) {
-                warnings.addAll(result.stepReuseValidationResult().warnings());
-            }
-            if (result.yamlKeyValidationResult() != null) {
-                warnings.addAll(result.yamlKeyValidationResult().warnings());
-            }
-            if (result.allowedYamlGuardResult() != null) {
-                warnings.addAll(result.allowedYamlGuardResult().warnings());
-            }
-            if (result.pageFrameContextGuardResult() != null) {
-                warnings.addAll(result.pageFrameContextGuardResult().warnings());
-            }
-            if (result.runnableFeatureResult() != null) {
-                warnings.addAll(result.runnableFeatureResult().warnings());
-            }
-            if (result.missingYamlPatchSuggestions() != null) {
-                for (var suggestion : result.missingYamlPatchSuggestions()) {
-                    warnings.addAll(suggestion.warnings());
-                }
-            }
-            return warnings;
-        }
-
-        private static AiGenerationAuditRecord buildAuditRecord(
-                AiGenerationMode mode,
-                AiAssistantProperties props,
-                String requirement,
-                Path requestedOutput,
-                Path writtenOutput,
-                GenerationResult result,
-                List<String> blockingErrors,
-                List<String> warnings
-        ) {
-            boolean parseOk = result != null && result.structuredResponse() != null && result.structuredResponse().parseSuccessful();
-            boolean stepOk = result != null
-                    && result.stepReuseValidationResult() != null
-                    && result.stepReuseValidationResult().passed();
-            boolean yamlOk = result != null
-                    && result.yamlKeyValidationResult() != null
-                    && result.yamlKeyValidationResult().passed();
-            int reused = result != null && result.structuredResponse() != null ? result.structuredResponse().reusedSteps().size() : 0;
-            int newSteps = result != null && result.structuredResponse() != null ? result.structuredResponse().newStepsNeeded().size() : 0;
-            int missingYaml = result != null && result.yamlKeyValidationResult() != null ? result.yamlKeyValidationResult().missingCount() : 0;
-            String outputPath = writtenOutput != null ? writtenOutput.toString() : requestedOutput.toString();
-
-            return new AiGenerationAuditRecord(
-                    UUID.randomUUID().toString(),
-                    Instant.now().toString(),
-                    "generate",
-                    mode.name(),
-                    props.model(),
-                    props.promptVersion(),
-                    AiGenerationAuditLogger.sha256(requirement),
-                    outputPath,
-                    parseOk,
-                    stepOk,
-                    yamlOk,
-                    writtenOutput != null,
-                    reused,
-                    newSteps,
-                    missingYaml,
-                    warnings,
-                    blockingErrors
-            );
         }
 
         private String resolveRequirement() throws Exception {
@@ -356,7 +279,7 @@ public class AiAssistantCli implements Callable<Integer> {
     @Command(
             name = "serve",
             mixinStandardHelpOptions = true,
-            description = "Localhost API: GET /health, POST /generate"
+            description = "Localhost API/UI: GET /, GET /health, POST /generate-write (preferred), POST /generate (deprecated)"
     )
     static final class ServeCommand implements Callable<Integer> {
 
@@ -372,7 +295,7 @@ public class AiAssistantCli implements Callable<Integer> {
             validateGemini(props);
             HttpServer server = AiGenerateHttpServer.createAndStart(port, projectRoot);
             System.out.println("UI: http://127.0.0.1:" + port + "/");
-            System.out.println("API: POST /generate-write  POST /generate  GET /health");
+            System.out.println("API: POST /generate-write (preferred)  POST /generate (deprecated)  GET /health");
             System.out.println("Press Enter to stop.");
             System.in.read();
             server.stop(0);
