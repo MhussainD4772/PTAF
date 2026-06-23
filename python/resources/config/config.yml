@@ -1,0 +1,55 @@
+
+# ==================================
+# UI CONFIGURATION
+# ==================================
+# Browser configuration for test execution
+browser: "chrome"  # Specifies the browser to use (CHROME, FIREFOX, WEBKIT, etc.)
+
+# Headless mode setting
+headless: "false"  # Set to "true" to run the browser in headless mode (no UI)
+
+# Video Capture setting
+videoCapture: "false"
+
+# Excel Document Location in your Framework you can  modify based of your application
+excelDocumentLocation: "src/test/resources/testdata.xlsx"
+
+# Download Document Location in your Framework you can  modify based of your application
+downloadDocument: "src/test/downloads/download_document.png"
+
+# Environment URLs for different test environments
+rnd_url: "https://pdscawebdev01.myfnb.us/Account/Login?ReturnUrl=%2F"
+qa_url: "https://qa.fnbonline.fnb-online.com/documentcenter/Account/Login#"
+eStore_QA: "https://qa.fnbonline.fnb-online.com"
+Argo_Teller_qaEnvUrl: "https://fnbbrargoqa03w.myfnb.us:8443/"
+connectsQa1Url: "https://vsargwebqa01.myfnb.us:5048/"
+google_url: "https://www.google.com/"
+panda_url: "https://automationpanda.com/2021/12/29/want-to-practice-test-automation-try-these-demo-sites/"
+tool_qa_url: "https://demoqa.com/"
+
+# ==================================
+# DATABASE CONFIGURATION
+# ==================================
+database:
+  connection_url: "jdbc:postgresql://localhost:5432/lime-of-time-database"
+  username: "postgres"
+  # IMPORTANT: The password will be read from an environment variable named 'DB_PASSWORD'
+  # Do not store the password here in plain text.
+  password_env_variable: "DB_PASSWORD"
+
+# ==================================
+# API SERVICES CONFIGURATION
+# ==================================
+api_services:
+  # Example for a public test API like JSONPlaceholder
+  jsonplaceholder:
+    base_url: "https://jsonplaceholder.typicode.com"
+    # This service requires no authentication, so we leave it blank
+    auth_token_env: ""
+
+  # Example for an internal service that requires authentication
+  internal_crm:
+    base_url: "https://api.internal-crm.com/v2"
+    # IMPORTANT: We store the NAME of the environment variable, not the token itself.
+    # The framework will read the actual token from the system's environment.
+    auth_token_env: "CRM_API_TOKEN"

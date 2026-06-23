@@ -1,0 +1,27 @@
+# ==========================================================
+# Reusable SQL Queries for Test Automation
+#
+# Use standard JDBC PreparedStatement placeholders (?)
+# for any parameters that will be passed in from the tests.
+# The order of the '?' placeholders is important.
+# ==========================================================
+
+# --- User Management Queries ---
+users:
+  get_user_by_email: "SELECT * FROM public.users WHERE email = ?;"
+  get_user_by_id: "SELECT user_id, username, email, is_active FROM public.users WHERE user_id = ?;"
+  get_all_active_users: "SELECT * FROM public.users WHERE is_active = true;"
+  insert_new_user: "INSERT INTO public.users (username, email, password_hash, is_active, created_at) VALUES (?, ?, ?, true, NOW());"
+  update_user_status: "UPDATE public.users SET is_active = ? WHERE email = ?;"
+  delete_user_by_email: "DELETE FROM public.users WHERE email = ?;"
+
+# --- Product/Inventory Queries ---
+products:
+  get_product_by_sku: "SELECT * FROM public.products WHERE sku = ?;"
+  get_product_stock_level: "SELECT stock_quantity FROM public.inventory WHERE product_id = ?;"
+  update_stock_level: "UPDATE public.inventory SET stock_quantity = ?, last_updated_at = NOW() WHERE product_id = ?;"
+
+# --- Stored Procedure Calls ---
+# Note: The syntax for calling stored procedures can vary by database (e.g., PostgreSQL vs. SQL Server)
+stored_procedures:
+  calculate_customer_discount: "{CALL CalculateCustomerDiscount(?)}"
