@@ -1,0 +1,12 @@
+elements:
+  panda_page:
+    body: "CSS_body"
+    home_tab: "CSS_//li[contains(.,'Home')]"
+    about_tab: "CSS_//a[normalize-space(text())='About']"
+    contact_tab: "CSS_//a[normalize-space(text())='Contact']"
+    speaking_tab: "CSS_//a[normalize-space(text())='Speaking']"
+    teaching_tab: "CSS_//a[normalize-space(text())='Teaching']"
+    bdd_tab: "CSS_//li[contains(.,'BDD')]"
+    development_tab: "CSS_//a[normalize-space(text())='Development']"
+    testing_tab: "CSS_//li[@id='menu-item-6835']/a[1]"
+    python_tab: "CSS_//li[@id='menu-item-6849']/a[1]"

@@ -1,0 +1,14 @@
+elements:
+  login:
+    body: "CSS_body"
+    username: "CSS_#UserName"
+    password: "CSS_#Password"
+    loginButton: "CSS_button[type='submit']"
+    login_text: "CSS_//b[text()='Login ']"
+    otp_field: "CSS_#Code"
+    otp_continue_btn: "Button_Continue"
+    location_flt: "CSS_#inputLocation"
+    cashbox_flt: "CSS_#textCashbox"
+    ok_btn: "Button_OK"
+    sign_on_btn: "Button_Sign On"
+    yes_btn: "Button_Yes"
