@@ -3,5 +3,7 @@ __pycache__/
 *.py[cod]
 .env
 .pytest_cache/
+reports/
+test-output/
 htmlcov/
 .coverage

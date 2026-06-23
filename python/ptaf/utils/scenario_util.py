@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import logging
 from typing import Any
 
@@ -84,14 +85,18 @@ def attach_screenshot_to_report(
     if report is None:
         return
 
-    extras = getattr(report, "extra", [])
     try:
         import pytest_html
 
-        extras.append(pytest_html.extras.png(screenshot, label))
-        report.extra = extras
+        encoded = base64.b64encode(screenshot).decode("ascii")
+        png_extra = pytest_html.extras.png(encoded, label)
     except Exception as exc:
         logger.debug("Could not attach screenshot to html report: %s", exc)
+        return
+
+    extras = list(getattr(report, "extras", None) or getattr(report, "extra", []))
+    extras.append(png_extra)
+    report.extras = extras
 
 
 def _scenario_name(scenario: object | None) -> str:

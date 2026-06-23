@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import logging
 from collections.abc import Generator
 from typing import Any
@@ -16,6 +17,8 @@ from ptaf.ui.page_common import PageCommonMethods
 from ptaf.utils import browser_factory, config, scenario_util
 
 logger = logging.getLogger(__name__)
+
+_SCENARIO_BINDINGS = "scenario_bindings.py"
 
 BrowserStack = tuple[Browser, BrowserContext, Page]
 
@@ -43,20 +46,25 @@ def _resolve_browser_type() -> browser_factory.BrowserTypeEnum:
     return browser_factory.parse_browser_type(browser_name)
 
 
-def _capture_failure_screenshot(request: pytest.FixtureRequest, test_page: Page) -> None:
-    report = getattr(request.node, "rep_call", None)
-    if report is None or not report.failed:
-        return
+def _stash_failure_screenshot(item: pytest.Item, test_page: Page) -> None:
+    """Queue a failure screenshot for pytest-html before the call report is finalized."""
     if test_page is None or test_page.is_closed():
         return
 
-    screenshot = scenario_util.handle_scenario_teardown(
-        request.node, test_page, "failed"
-    )
-    if screenshot is not None:
-        scenario_util.attach_screenshot_to_report(
-            report, screenshot, "Failure screenshot"
-        )
+    screenshot = scenario_util.handle_scenario_teardown(item, test_page, "failed")
+    if screenshot is None:
+        return
+
+    try:
+        import pytest_html
+        from pytest_html.fixtures import extras_stash_key
+    except ImportError:
+        logger.debug("pytest-html is not installed; skipping screenshot attachment")
+        return
+
+    extras = item.config.stash.setdefault(extras_stash_key, [])
+    encoded = base64.b64encode(screenshot).decode("ascii")
+    extras.append(pytest_html.extras.png(encoded, "Failure screenshot"))
 
 
 def _close_page(test_page: Page | None) -> None:
@@ -215,7 +223,6 @@ def page(
     except RuntimeError:
         active_page = None
 
-    _capture_failure_screenshot(request, active_page)
     _dispose_api_context()
     _close_db_connection()
 
@@ -238,10 +245,30 @@ def page_common(page: Page) -> PageCommonMethods:
     return page_common_methods
 
 
-@pytest.hookimpl(hookwrapper=True, tryfirst=True)
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """Tag BDD UI scenarios with `ui` (Java: @ui or untagged non-api/db features)."""
+    for item in items:
+        if _SCENARIO_BINDINGS not in str(item.path):
+            continue
+        if item.get_closest_marker("api") or item.get_closest_marker("db"):
+            continue
+        item.add_marker(pytest.mark.ui)
+
+
+@pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(
     item: pytest.Item, call: pytest.CallInfo[Any]
 ) -> Generator[None, None, None]:
     outcome = yield
     report = outcome.get_result()
     setattr(item, f"rep_{report.when}", report)
+
+    if report.when != "call" or not report.failed:
+        return
+
+    try:
+        active_page = hooks.get_page()
+    except RuntimeError:
+        active_page = None
+
+    _stash_failure_screenshot(item, active_page)
