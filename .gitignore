@@ -7,3 +7,6 @@ reports/
 test-output/
 htmlcov/
 .coverage
+.vscode/
+.idea/
+.cursor/

@@ -42,8 +42,8 @@ def _close_db_connection() -> None:
 def _has_last_scenario_marker(request: pytest.FixtureRequest) -> bool:
     if request.node.get_closest_marker("last_scenario_feature") is not None:
         return True
-
-    # TODO(migration): confirm @LastScenario reuse semantics for pytest-bdd feature tags.
+    if request.node.get_closest_marker("LastScenario") is not None:
+        return True
     return False
 
 
@@ -115,10 +115,25 @@ def _skip_db_tests_when_unconfigured(request: pytest.FixtureRequest) -> None:
         )
 
 
+@pytest.fixture(autouse=True)
+def _scenario_resource_cleanup() -> Generator[None, None, None]:
+    """Dispose API/DB resources after every test (including API-only BDD scenarios)."""
+    yield
+    _dispose_api_context()
+    _close_db_connection()
+
+
 @pytest.fixture(scope="session")
 def playwright_instance() -> Generator[Playwright, None, None]:
     with sync_playwright() as playwright:
+        hooks.set_playwright(playwright)
         yield playwright
+        hooks.set_playwright(None)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _shared_playwright_session(playwright_instance: Playwright) -> None:
+    """Start one sync Playwright instance for the whole session (API + UI)."""
 
 
 @pytest.fixture(scope="class")

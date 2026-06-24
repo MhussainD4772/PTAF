@@ -11,6 +11,7 @@ from typing import Any
 
 from playwright.sync_api import APIRequestContext, Playwright, sync_playwright
 
+from ptaf import hooks
 from ptaf.utils import config, yaml_reader
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,7 @@ _api_context: ContextVar[APIRequestContext | None] = ContextVar(
     "_api_context", default=None
 )
 _playwright: ContextVar[Playwright | None] = ContextVar("_api_playwright", default=None)
+_owns_playwright: ContextVar[bool] = ContextVar("_api_owns_playwright", default=False)
 _headers: ContextVar[dict[str, str] | None] = ContextVar("_api_headers", default=None)
 _path_params: ContextVar[dict[str, str] | None] = ContextVar(
     "_api_path_params", default=None
@@ -60,7 +62,12 @@ class ApiRequestHandler:
 
         logger.info("Creating new APIRequestContext for service: %s", service_name)
 
-        playwright = sync_playwright().start()
+        playwright = hooks.get_playwright()
+        if playwright is None:
+            playwright = sync_playwright().start()
+            _owns_playwright.set(True)
+        else:
+            _owns_playwright.set(False)
         _playwright.set(playwright)
 
         base_url = config.get_api_service_base_url(service_name)
@@ -98,10 +105,12 @@ class ApiRequestHandler:
             _api_context.set(None)
             logger.info("APIRequestContext disposed for this context.")
 
-        playwright = _playwright.get()
-        if playwright is not None:
-            playwright.stop()
+        if _owns_playwright.get():
+            playwright = _playwright.get()
+            if playwright is not None:
+                playwright.stop()
             _playwright.set(None)
+            _owns_playwright.set(False)
 
 
 class ApiActionPerformer:
@@ -121,7 +130,12 @@ class ApiActionPerformer:
     @staticmethod
     def _serialize_body(body: Any) -> str:
         if isinstance(body, str):
-            return json.dumps(body)
+            text = body.strip()
+            try:
+                json.loads(text)
+                return text
+            except json.JSONDecodeError:
+                return json.dumps(body)
         return json.dumps(body)
 
     def send_request(
