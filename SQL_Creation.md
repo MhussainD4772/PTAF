@@ -1,124 +1,56 @@
-**Automating Database Queries Using Playwright in Java**
+# Database testing in PTAF (Python)
 
-### **1. Overview**
-Playwright is primarily designed for browser automation, but you can integrate database automation within your Playwright framework using Java. This document outlines the steps to execute database queries in Playwright tests.
+PTAF runs database checks alongside UI and API tests via pytest-bdd. Playwright does not talk to the database directly; the framework uses **psycopg** (PostgreSQL) and **pyodbc** (SQL Server) through `ptaf/db/`.
 
----
+## Configuration
 
-### **2. Setting Up JDBC Dependencies**
-To interact with a database, you need the appropriate JDBC driver. Add the following dependencies to your `pom.xml` file:
+Connection settings live in `resources/config/config.yml`:
 
-#### **For MySQL:**
-```xml
-<dependency>
-    <groupId>mysql</groupId>
-    <artifactId>mysql-connector-java</artifactId>
-    <version>8.0.33</version>
-</dependency>
+```yaml
+database:
+  connection_url: "jdbc:postgresql://localhost:5432/your-database"
+  username: "postgres"
+  password_env_variable: "DB_PASSWORD"
 ```
 
-#### **For PostgreSQL:**
-```xml
-<dependency>
-    <groupId>org.postgresql</groupId>
-    <artifactId>postgresql</artifactId>
-    <version>42.5.0</version>
-</dependency>
+Set the password in `.env` (see `.env.example`):
+
+```bash
+DB_PASSWORD=your_secret
 ```
 
----
+SQL templates are defined in `resources/queries/db_queries.yml`.
 
-### **3. Creating a Database Utility Class**
-Create a helper class to manage database queries:
+## Step definitions
 
-```java
-import java.sql.*;
+Database Gherkin steps are in `steps/database_steps.py` and delegate to `ptaf/db/db_handler.py` and `DatabaseCommonMethods`.
 
-public class DatabaseHelper {
-    private static final String URL = "jdbc:mysql://your-db-host:3306/your_database";
-    private static final String USER = "your_username";
-    private static final String PASSWORD = "your_password";
+Example feature usage:
 
-    public static ResultSet executeQuery(String query) {
-        try {
-            Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
-            Statement statement = connection.createStatement();
-            return statement.executeQuery(query);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public static int executeUpdate(String query) {
-        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
-             Statement statement = connection.createStatement()) {
-            return statement.executeUpdate(query);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
-        }
-    }
-}
+```gherkin
+@db
+Scenario: Verify user record
+  Given I connect to the database
+  When I execute the query "select_user_by_id" with parameters "1"
+  Then the query result should contain "username" with value "alice"
 ```
 
----
+Run DB scenarios:
 
-### **4. Using the Database Utility Class in Playwright Tests**
-Once the helper class is set up, you can use it to retrieve data for validation in your Playwright test scripts.
-
-```java
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-public class TestDatabase {
-    public static void main(String[] args) {
-        String query = "SELECT * FROM users WHERE id = 1";
-        ResultSet rs = DatabaseHelper.executeQuery(query);
-        try {
-            while (rs.next()) {
-                System.out.println("User Name: " + rs.getString("username"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-}
+```bash
+uv run pytest -m db
 ```
 
----
+## Dependencies
 
-### **5. Integrating Database Queries in Playwright UI Tests**
-If you need to validate database values against UI elements, you can use Playwright within your test flow:
+Database drivers are declared in `pyproject.toml` (`psycopg[binary]`, `pyodbc`). Install with:
 
-```java
-@Test
-public void verifyUserFromDatabase() {
-    Page page = Playwright.create().chromium().launch().newPage();
-    page.navigate("https://your-app.com/login");
-
-    ResultSet rs = DatabaseHelper.executeQuery("SELECT username FROM users WHERE id = 1");
-    String expectedUsername = "";
-    try {
-        if (rs.next()) {
-            expectedUsername = rs.getString("username");
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
-
-    String actualUsername = page.locator("#username").textContent();
-    Assertions.assertEquals(expectedUsername, actualUsername);
-}
+```bash
+uv sync
 ```
 
----
+## Key points
 
-### **6. Key Takeaways**
-- **Playwright does not handle databases directly**, but you can integrate JDBC for query execution.
-- Use a **helper class** to manage database interactions.
-- **Execute database queries inside Playwright tests** to validate UI against backend data.
-- **Ensure proper resource management** by closing connections after execution.
-
-This approach allows you to extend Playwright's capabilities to automate end-to-end tests involving both UI and database validation.
-
+- Store credentials in environment variables, not in YAML.
+- Use parameterized queries from `db_queries.yml` rather than inline SQL in features.
+- Tag scenarios with `@db` so they can be run independently of UI tests.

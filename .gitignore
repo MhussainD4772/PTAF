@@ -1,7 +1,9 @@
-/node_modules/
-/.env
-/.idea/
-/target/
-/test-output/
-/test-output-thread/
-.DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+.env
+.pytest_cache/
+reports/
+test-output/
+htmlcov/
+.coverage

@@ -1,6 +1,0 @@
-elements:
-  google_page:
-    body: "CSS_body"
-    search_flt: "CSS_#APjFqb"
-    google_search_btn: "CSS_(//input[@name='btnK'])[2]"
-    footer_text: "CSS_//span[normalize-space(text())='Applying AI towards science and the environment']"
