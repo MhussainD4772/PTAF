@@ -2,7 +2,7 @@
 
 PTAF is a single, unified test automation framework for testing **web UIs, REST APIs, and databases** from one codebase. You describe what to test in plain-English `.feature` files, and the framework turns those sentences into real browser clicks, HTTP calls, and SQL queries.
 
-It is built in **Python** on top of **Playwright** and **pytest-bdd**, and it keeps everything that changes often — URLs, element locators, API endpoints, SQL — out of the code and inside readable **YAML** files. It also ships an optional **AI assistant** that can draft new feature files for you using Google Gemini.
+It is built in **Python** on top of **Playwright** and **pytest-bdd**, and it keeps everything that changes often URLs, element locators, API endpoints, SQL out of the code and inside readable **YAML** files. It also ships an optional **AI assistant** that can draft new feature files for you using Google Gemini.
 
 If you have never seen this repo before, read the [Architecture](#architecture) section first — it explains the whole system in five minutes.
 
@@ -29,7 +29,7 @@ If you have never seen this repo before, read the [Architecture](#architecture) 
 
 - **One framework, three test types.** UI, API, and database tests share the same Gherkin language, the same runner, and the same reports.
 - **Plain-English tests.** Scenarios are written in Gherkin, so non-developers can read (and often write) them.
-- **No hard-coded test data.** Locators, endpoints, queries, URLs, and credentials live in YAML and environment variables — never in the test logic.
+- **No hard-coded test data.** Locators, endpoints, queries, URLs, and credentials live in YAML and environment variables never in the test logic.
 - **Cross-browser.** Runs on Chromium, Firefox, or WebKit through Playwright.
 - **Parallel execution.** Scenarios can run concurrently to keep suites fast.
 - **Rich HTML reports** with automatic screenshots captured the moment a test fails.
@@ -57,7 +57,7 @@ If you have never seen this repo before, read the [Architecture](#architecture) 
 
 ## Architecture
 
-PTAF is layered. The top layer is human-readable; each layer below it gets closer to the actual browser, network, or database. Everything in the middle is glue that turns a sentence into an action.
+PTAF is layered. The top layer is human readable; each layer below it gets closer to the actual browser, network, or database. Everything in the middle is glue that turns a sentence into an action.
 
 ```mermaid
 flowchart TD
@@ -189,7 +189,7 @@ Feature: Google Validation
     Then we capture screenshot on page google_page locator body name "google/result"
 ```
 
-**2. Point the keys at real things** — values live in YAML, not in the sentence:
+**2. Point the keys at real things**  values live in YAML, not in the sentence:
 
 ```yaml
 # resources/config/config.yml
@@ -210,7 +210,7 @@ elements:
 uv run pytest -k "google"
 ```
 
-The sentence `we enter value on page google_page locator search_flt value "wooden spoon"` is matched by an existing step definition, which looks up the `google_page.search_flt` locator in YAML and types into it with Playwright. API and database steps work the same way — the request lives in `api_requests.yml` and the SQL lives in `db_queries.yml`.
+The sentence `we enter value on page google_page locator search_flt value "wooden spoon"` is matched by an existing step definition, which looks up the `google_page.search_flt` locator in YAML and types into it with Playwright. API and database steps work the same way the request lives in `api_requests.yml` and the SQL lives in `db_queries.yml`.
 
 ---
 
@@ -231,7 +231,7 @@ All YAML under `resources/` is merged at startup into one keyed lookup, so any s
 
 ## Reporting
 
-Every run produces a self-contained HTML report at `reports/report.html`. When a UI test fails, a screenshot of the page at the moment of failure is embedded directly into the report, so you can see what the browser saw without re-running anything.
+Every run produces a self-contained HTML report at `reports/report.html`. When a UI test fails, a screenshot of the page at the moment of failure is embedded directly into the report, so you can see what the browser saw without rerunning anything.
 
 ```bash
 uv run pytest -m smoke --html=reports/report.html
