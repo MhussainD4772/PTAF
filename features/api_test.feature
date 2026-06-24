@@ -1,3 +1,4 @@
+@api
 Feature: JSONPlaceholder API
 
   Scenario: Retrieve a specific blog post and verify its title

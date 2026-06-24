@@ -1,0 +1,12 @@
+elements:
+  homePage:
+    logout_btn: "LinkText_Log Out"
+    alert_frame_and_window: "CSS_(//div[contains(@class,'card mt-4')]/following-sibling::div)[2]"
+    browser_window: "CSS_//li[contains(.,'Browser Windows')]"
+    new_tab_btn: "id_tabButton"
+    tab_semple_heading: "id_sampleHeading"
+    frame_semple_heading: "id_sampleHeading"
+    frame_btn: "css_//span[normalize-space(text())='Frames']"
+    elements_tab: "css_(//div[contains(@class,'card mt-4')])[1]"
+    update_and_download_tab: "xpath_//span[normalize-space(text())='Upload and Download']"
+    download_btn: "linktext_Download"

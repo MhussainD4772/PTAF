@@ -29,7 +29,7 @@ Cucumber tags map to pytest markers (drop the `@`): e.g. `@Panda_Page` → `uv r
 
 ### Keyword-agnostic steps
 
-Step definitions use pytest-bdd’s generic `@step` decorator (via `steps/step_binding.py`), matching Cucumber-JVM behavior: **Given / When / Then / And are interchangeable** for the same step text.
+Step definitions use pytest-bdd’s keyword-agnostic `keyword_step` decorator (`steps/step_binding.py`), matching Cucumber-JVM behavior: **Given / When / Then / And are interchangeable** for the same step text.
 
 ## Reporting
 

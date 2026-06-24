@@ -11,7 +11,7 @@ Feature: Argo Teller
 #    When we select on frame
     When we select on frame login locator location_flt value "L1"
     And we enter value on frame login locator cashbox_flt value "77"
-    Then we click on frame login locator sign_on_bt
+    Then we click on frame login locator sign_on_btn
     And we wait for some time
     And we wait for some time
     And we wait for some time
