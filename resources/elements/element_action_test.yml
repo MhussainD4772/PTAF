@@ -1,0 +1,4 @@
+elements:
+  user_table:
+    edit: "ROW_Jane Doe > BUTTON_Edit"
+    single: "CSS_#submit"

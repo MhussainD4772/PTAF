@@ -1,0 +1,56 @@
+# Gemini assistant — defaults only. Never put the API key in this file.
+# gemini_api_key_env = NAME of env var. Set the value in project root ".env" (see .env.example) or export GEMINI_API_KEY=...
+ai_assistant:
+  gemini_api_key_env: "GEMINI_API_KEY"
+  model: "gemini-2.5-flash"
+
+  features_dir: "features"
+  step_definitions_dir: "steps"
+  step_definition_paths:
+    - "steps"
+  yaml_paths:
+    elements: "resources/elements"
+    api_requests: "resources/api_requests"
+    queries: "resources/queries"
+    config: "resources/config"
+  hooks_dir: "ptaf"
+  ui_pages_dir: "ptaf/ui"
+  elements_dir: "resources/elements"
+  config_yaml_dir: "resources/config"
+
+  max_feature_files: 24
+  max_step_def_files: 24
+  max_hooks_files: 8
+  max_pages_files: 16
+  max_elements_files: 20
+  max_config_yaml_files: 10
+  ranking_top_chunks: 14
+  ranking_top_patterns: 55
+
+  max_total_context_chars: 100000
+
+  temperature: 0.2
+  max_output_tokens: 8192
+  prompt_version: "phase1-v1"
+  audit:
+    enabled: true
+    output_path: "target/ai-audit/generation-audit.jsonl"
+  context:
+    featurePaths:
+      - "features"
+    stepDefinitionPaths:
+      - "steps"
+    yamlPaths:
+      elements: "resources/elements"
+      api_requests: "resources/api_requests"
+      queries: "resources/queries"
+      config: "resources/config"
+    maxFeatureSnippets: 20
+    maxStepDefinitionsInPrompt: 100
+    maxYamlKeysInPrompt: 200
+    maxSimilarFeatures: 3
+    minSimilarityScore: 1
+  contextRules:
+    defaultUiContext: page
+    frameAllowedPages: []
+    frameAllowedLocators: []
