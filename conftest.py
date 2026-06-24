@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 pytest_plugins = [
-    "steps.page_common_steps",
-    "steps.frame_common_steps",
-    "steps.new_page_common_steps",
-    "steps.api_steps",
-    "steps.database_steps",
+    "stepdefinitions.page_common_steps",
+    "stepdefinitions.frame_common_steps",
+    "stepdefinitions.new_page_common_steps",
+    "stepdefinitions.api_steps",
+    "stepdefinitions.database_steps",
 ]
 
 import base64

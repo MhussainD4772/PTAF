@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pytest_bdd import parsers
 
-from steps.step_binding import keyword_step
+from stepdefinitions.step_binding import keyword_step
 
 from ptaf.api.api_common import ApiCommonMethods
 

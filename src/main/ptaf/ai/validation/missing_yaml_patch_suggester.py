@@ -41,10 +41,10 @@ def _build_suggestion(key: str) -> MissingYamlPatchSuggestion:
     category = parts[0]
     path = parts[1:]
     mapping = {
-        "elements": ("elements", "resources/elements", _build_leaf_patch(path, '"TODO_SELECTOR"')),
-        "api_requests": ("api_requests", "resources/api_requests", _build_api_patch(path)),
-        "queries": ("queries", "resources/queries", _build_leaf_patch(path, '"TODO_SQL_QUERY"')),
-        "config": ("config", "resources/config", _build_leaf_patch(path, '"TODO_VALUE"')),
+        "elements": ("elements", "src/test/resources/elements", _build_leaf_patch(path, '"TODO_SELECTOR"')),
+        "api_requests": ("api_requests", "src/test/resources/api_requests", _build_api_patch(path)),
+        "queries": ("queries", "src/test/resources/queries", _build_leaf_patch(path, '"TODO_SQL_QUERY"')),
+        "config": ("config", "src/test/resources/config", _build_leaf_patch(path, '"TODO_VALUE"')),
     }
     if category in mapping:
         cat, folder, patch = mapping[category]

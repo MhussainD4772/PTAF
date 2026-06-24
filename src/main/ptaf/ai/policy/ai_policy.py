@@ -15,7 +15,7 @@ class AiPolicy:
 
     @staticmethod
     def _load() -> dict[str, Any]:
-        path = Path(__file__).resolve().parents[3] / "resources" / "config" / "ai_policy.yml"
+        path = Path(__file__).resolve().parents[5] / "src" / "test" / "resources" / "config" / "ai_policy.yml"
         if not path.is_file():
             return {}
         with path.open(encoding="utf-8") as handle:

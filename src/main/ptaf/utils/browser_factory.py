@@ -12,7 +12,7 @@ from ptaf.utils import config
 
 logger = logging.getLogger(__name__)
 
-VIDEO_DIR = Path(__file__).resolve().parent.parent.parent / "test-output" / "captured-videos"
+VIDEO_DIR = Path(__file__).resolve().parents[4] / "test-output" / "captured-videos"
 
 
 class BrowserTypeEnum(str, Enum):
