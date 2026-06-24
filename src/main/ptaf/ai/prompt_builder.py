@@ -1,7 +1,12 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from ptaf.ai.config.ai_assistant_properties import AiAssistantProperties
 from ptaf.ai.context.framework_generation_context import FrameworkGenerationContext
+
+if TYPE_CHECKING:
+    from ptaf.ai.browser.browser_page_context import BrowserPageContext
 
 
 class PromptBuilder:
@@ -19,12 +24,29 @@ class PromptBuilder:
         requirement: str,
         context: FrameworkGenerationContext,
         similar_feature_snippets: list[str],
+        browser_context: BrowserPageContext | None = None,
     ) -> str:
         similar_limited = _limit(similar_feature_snippets, self._properties.context_max_similar_features())
         steps_limited = _limit(context.existing_step_definitions, self._properties.context_max_step_definitions_in_prompt())
         yaml_limited = _limit(context.existing_yaml_keys, self._properties.context_max_yaml_keys_in_prompt())
+        browser_section = (
+            browser_context.prompt_section()
+            if browser_context is not None
+            else "(not collected — text-only generation)"
+        )
+        browser_rules = ""
+        if browser_context is not None:
+            browser_rules = """
+- BROWSER_CONTEXT contains a live accessibility snapshot from Playwright.
+- Map interactive elements to existing elements.* YAML keys when names/roles match.
+- If no YAML key exists for a needed element, list it in MISSING_YAML_KEYS (do not invent keys in FEATURE_FILE).
+- Prefer roles and names visible in ACCESSIBILITY_SNAPSHOT when choosing locators.
+"""
         return f"""REQUIREMENT:
 {requirement.strip()}
+
+BROWSER_CONTEXT:
+{browser_section}
 
 SIMILAR_FEATURES:
 {_render_section(similar_limited)}
@@ -53,7 +75,7 @@ RULES:
 - Do not use frame steps for login unless login is frame-allowed.
 - Prefer page steps for normal UI actions.
 - Prefer patterns from SIMILAR_FEATURES.
-- Return only the structured output contract.
+{browser_rules}- Return only the structured output contract.
 - No markdown outside the required contract.
 - Always include all contract sections, even if empty.
 - Gherkin must include a Feature and at least one Scenario.

@@ -1,0 +1,11 @@
+{
+  "name": "ptaf",
+  "private": true,
+  "description": "Playwright MCP server dependency for ptaf-ai explore-generate",
+  "scripts": {
+    "mcp:install-browser": "playwright-mcp install-browser chromium"
+  },
+  "devDependencies": {
+    "@playwright/mcp": "^0.0.76"
+  }
+}

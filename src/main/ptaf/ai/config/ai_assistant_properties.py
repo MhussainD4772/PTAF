@@ -230,6 +230,31 @@ class AiAssistantProperties:
     def prompt_version(self) -> str:
         return self._str("prompt_version", "phase1-v1")
 
+    def _browser_context(self) -> dict[str, Any]:
+        value = self._ai().get("browser_context")
+        return value if isinstance(value, dict) else {}
+
+    def browser_context_provider(self) -> str:
+        value = self._browser_context().get("provider")
+        if value is not None and str(value).strip():
+            return str(value).strip()
+        return "mcp"
+
+    def project_root(self) -> Path:
+        return _package_root()
+
+    def mcp_command(self) -> str:
+        value = self._browser_context().get("mcp_command")
+        if value is not None and str(value).strip():
+            return str(value).strip()
+        return "npx"
+
+    def mcp_server_args(self) -> list[str]:
+        value = self._browser_context().get("mcp_server_args")
+        if isinstance(value, list):
+            return [str(item).strip() for item in value if item and str(item).strip()]
+        return []
+
     def audit_enabled(self) -> bool:
         audit = self._ai().get("audit")
         if isinstance(audit, dict):

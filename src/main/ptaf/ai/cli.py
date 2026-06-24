@@ -6,6 +6,7 @@ from pathlib import Path
 import click
 
 from ptaf.ai.audit import generation_audit_support as audit_support
+from ptaf.ai.browser.browser_aware_generation_service import BrowserAwareGenerationService
 from ptaf.ai.config.ai_assistant_properties import AiAssistantProperties
 from ptaf.ai.feature_generator_service import FeatureGeneratorService
 from ptaf.ai.http.ai_generate_http_server import create_and_start
@@ -157,6 +158,101 @@ def generate_command(
     except Exception as exc:
         blocking_errors = [str(exc) or exc.__class__.__name__]
         exit_code = 1
+
+    _print_generation_summary(generation_mode, written, result, blocking_errors)
+    audit_write = audit_support.append(
+        project_root,
+        props,
+        generation_mode,
+        req,
+        out,
+        written,
+        result,
+        blocking_errors,
+    )
+    if audit_write.written:
+        click.echo("\n=== Audit ===")
+        click.echo("Audit log written:")
+        click.echo(audit_write.output_path)
+    elif audit_write.warning_message:
+        click.echo(audit_write.warning_message)
+    raise SystemExit(exit_code)
+
+
+@cli.command("explore-generate")
+@click.option("-r", "--requirement", help="Manual test scenario / requirement")
+@click.option("--requirement-file", type=click.Path(path_type=Path), help="UTF-8 file with the scenario")
+@click.option(
+    "--start-url-key",
+    help="Config URL key from config.yml (e.g. google_url, panda_url)",
+)
+@click.option("--url", help="Direct URL to explore (alternative to --start-url-key)")
+@click.option("-o", "--output", type=click.Path(path_type=Path), help="Output path")
+@click.option("--mode", default="preview", show_default=True, help="Generation mode: preview|write|strict")
+@click.option("--overwrite", is_flag=True, help="Allow overwriting an existing output file in write mode")
+@click.option(
+    "--max-snapshot-chars",
+    default=12_000,
+    show_default=True,
+    help="Max accessibility snapshot chars sent to the model",
+)
+@click.option("--project-root", type=click.Path(path_type=Path), default=".", show_default=True)
+def explore_generate_command(
+    requirement: str | None,
+    requirement_file: Path | None,
+    start_url_key: str | None,
+    url: str | None,
+    output: Path | None,
+    mode: str,
+    overwrite: bool,
+    max_snapshot_chars: int,
+    project_root: Path,
+) -> None:
+    """Explore a live page via @playwright/mcp, then generate a feature file."""
+    project_root = project_root.resolve()
+    props = AiAssistantProperties()
+    _validate_gemini(props)
+    req = _resolve_requirement(requirement, requirement_file)
+    if not start_url_key and not url:
+        raise click.ClickException("Provide --start-url-key or --url")
+    if start_url_key and url:
+        raise click.ClickException("Use either --start-url-key or --url, not both")
+
+    out = output or Path("target/ai-proposals/explore-generated.feature")
+    generation_mode = AiGenerationMode.from_string(mode)
+    service = BrowserAwareGenerationService(props)
+    result = None
+    browser_context = None
+    blocking_errors: list[str] = []
+    written: Path | None = None
+    exit_code = 0
+    try:
+        result, browser_context = service.explore_and_generate(
+            project_root,
+            req,
+            url_config_key=start_url_key,
+            url=url,
+            max_snapshot_chars=max_snapshot_chars,
+        )
+        evaluator = GenerationModeEvaluator()
+        blocking_errors = evaluator.blocking_errors(generation_mode, result)
+        generator = FeatureGeneratorService(props)
+        if evaluator.should_write_file(generation_mode, blocking_errors):
+            written = generator.write_feature_file(out, result, overwrite)
+        if generation_mode != AiGenerationMode.PREVIEW and blocking_errors:
+            exit_code = 1
+    except Exception as exc:
+        blocking_errors = [str(exc) or exc.__class__.__name__]
+        exit_code = 1
+
+    if browser_context is not None:
+        click.echo("=== Browser Context ===")
+        click.echo(f"Provider: {browser_context.provider}")
+        click.echo(f"URL: {browser_context.url}")
+        click.echo(f"Title: {browser_context.title}")
+        if browser_context.start_url_key:
+            click.echo(f"Start URL key: {browser_context.start_url_key}")
+        click.echo(f"Snapshot chars: {len(browser_context.aria_snapshot)}")
 
     _print_generation_summary(generation_mode, written, result, blocking_errors)
     audit_write = audit_support.append(
