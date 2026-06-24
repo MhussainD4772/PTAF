@@ -1,0 +1,7 @@
+# Phase 4 — governance defaults (non-secret).
+ai_policy:
+  blocked_requirement_patterns: []
+  max_requirement_chars: 20000
+  duplicate_step_warn_threshold: 8
+  duplicate_step_fail_threshold: 25
+  redact_triage_input: true
