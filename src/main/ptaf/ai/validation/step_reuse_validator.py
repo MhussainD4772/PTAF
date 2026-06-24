@@ -104,20 +104,54 @@ def _matches_parameterized_pattern(known_pattern: str, normalized_candidate: str
 
 
 def _build_parameterized_regex(known_pattern: str) -> str:
+    # pytest-bdd patterns often use value "{value}" — treat as a quoted-string slot.
+    pattern = re.sub(
+        r'"(\{([^}]+)\})"',
+        lambda match: "{" + f"quoted:{match.group(2)}" + "}",
+        known_pattern,
+    )
     regex = ["^"]
     index = 0
-    while index < len(known_pattern):
-        if known_pattern.startswith("{string}", index):
+    while index < len(pattern):
+        if pattern[index] == "{":
+            close = pattern.find("}", index)
+            if close == -1:
+                char = pattern[index]
+                if char in ".\\^$|?*+()[]{}:":
+                    regex.append("\\")
+                regex.append(char)
+                index += 1
+                continue
+            param = pattern[index + 1 : close]
+            if param.startswith("quoted:"):
+                regex.append('"[^"]*"')
+            elif param.endswith(":d") or param.endswith(":i"):
+                regex.append("-?\\d+")
+            elif param.endswith(":f"):
+                regex.append("-?\\d+(?:\\.\\d+)?")
+            elif param in ("string",):
+                regex.append('("[^"]*"|\'[^\']*\'|\\S+)')
+            elif param in ("int",):
+                regex.append("-?\\d+")
+            elif param in ("double",):
+                regex.append("-?\\d+(?:\\.\\d+)?")
+            else:
+                # pytest-bdd parse placeholders: {element}, {config_key}, {value}, etc.
+                regex.append('(?:\"[^\"]*\"|\'[^\']*\'|[^\\s"]+)')
+            index = close + 1
+            continue
+
+        if pattern.startswith("{string}", index):
             regex.append('("[^"]*"|\'[^\']*\'|\\S+)')
             index += len("{string}")
-        elif known_pattern.startswith("{int}", index):
+        elif pattern.startswith("{int}", index):
             regex.append("-?\\d+")
             index += len("{int}")
-        elif known_pattern.startswith("{double}", index):
+        elif pattern.startswith("{double}", index):
             regex.append("-?\\d+(?:\\.\\d+)?")
             index += len("{double}")
         else:
-            char = known_pattern[index]
+            char = pattern[index]
             if char in ".\\^$|?*+()[]{}:":
                 regex.append("\\")
             regex.append(char)

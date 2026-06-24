@@ -32,6 +32,12 @@ ai_assistant:
   temperature: 0.2
   max_output_tokens: 8192
   prompt_version: "phase1-v1"
+  browser_context:
+    provider: mcp
+    mcp_command: npx
+    # Optional override; when empty, args are built from config.yml browser/headless:
+    # npx -y @playwright/mcp@latest --isolated --browser=chromium [--headless]
+    mcp_server_args: []
   audit:
     enabled: true
     output_path: "target/ai-audit/generation-audit.jsonl"

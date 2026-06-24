@@ -136,16 +136,20 @@ PTAF/
 
 ## Getting started
 
-**Prerequisites:** Python 3.11+ and [uv](https://docs.astral.sh/uv/).
+**Prerequisites:** Python 3.11+, [uv](https://docs.astral.sh/uv/), and Node.js (for Playwright MCP).
 
 ```bash
-# 1. Install dependencies into a managed virtual environment
+# 1. Python dependencies
 uv sync
 
-# 2. Install the Playwright browser binaries
+# 2. Playwright browsers for pytest UI/API tests
 uv run playwright install
 
-# 3. (Optional) Create your secrets file for DB / API tokens / AI key
+# 3. Playwright MCP server + its browsers (for ptaf-ai explore-generate)
+npm install
+npm run mcp:install-browser
+
+# 4. (Optional) Secrets — DB password, API tokens, GEMINI_API_KEY
 cp .env.example .env
 ```
 

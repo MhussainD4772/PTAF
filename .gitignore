@@ -10,3 +10,6 @@ htmlcov/
 .vscode/
 .idea/
 .cursor/
+node_modules/
+target/
+.playwright-mcp/

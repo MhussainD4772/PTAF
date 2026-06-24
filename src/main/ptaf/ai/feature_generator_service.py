@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from ptaf.ai.browser.browser_page_context import BrowserPageContext
 from ptaf.ai.config.ai_assistant_properties import AiAssistantProperties
 from ptaf.ai.context.framework_context_collector import FrameworkContextCollector
 from ptaf.ai.context.similar_feature_retriever import SimilarFeatureRetriever
@@ -34,7 +35,13 @@ class FeatureGeneratorService:
         self._similar_feature_retriever = SimilarFeatureRetriever(properties)
         self._prompt_builder = PromptBuilder(properties)
 
-    def generate(self, project_root: Path, requirement: str) -> GenerationResult:
+    def generate(
+        self,
+        project_root: Path,
+        requirement: str,
+        *,
+        browser_context: BrowserPageContext | None = None,
+    ) -> GenerationResult:
         blocked = self._policy.validate_requirement(requirement)
         if blocked:
             raise RuntimeError(f"Policy rejected requirement: {blocked}")
@@ -42,7 +49,12 @@ class FeatureGeneratorService:
         framework_context = self._framework_context_collector.collect(project_root)
         similar = self._similar_feature_retriever.retrieve(requirement, framework_context)
         system = self._prompt_builder.system_prompt()
-        user = self._prompt_builder.user_prompt(requirement, framework_context, similar)
+        user = self._prompt_builder.user_prompt(
+            requirement,
+            framework_context,
+            similar,
+            browser_context=browser_context,
+        )
         raw = self._model_client.generate(system, user, self._properties)
         structured = parse(raw)
         step_index = StepDefinitionIndex.build(project_root, self._properties.step_definition_paths())
