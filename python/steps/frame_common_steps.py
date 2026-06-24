@@ -18,8 +18,9 @@ def _frame_common_methods() -> FrameCommonMethods:
     return FrameCommonMethods(_iframe_page)
 
 
-def we_navigate_to_url(page, url) -> None:
-    base_url = config.get_base_url(url)
+@given(parsers.parse("we navigate to {config_key} url"))
+def we_navigate_to_url(page, config_key) -> None:
+    base_url = config.get_base_url(config_key)
     page.goto(base_url or "")
 
 

@@ -2,6 +2,14 @@
 
 from __future__ import annotations
 
+pytest_plugins = [
+    "steps.page_common_steps",
+    "steps.frame_common_steps",
+    "steps.new_page_common_steps",
+    "steps.api_steps",
+    "steps.database_steps",
+]
+
 import base64
 import logging
 from collections.abc import Generator
