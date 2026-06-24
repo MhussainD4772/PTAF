@@ -4,19 +4,19 @@ ai_assistant:
   gemini_api_key_env: "GEMINI_API_KEY"
   model: "gemini-2.5-flash"
 
-  features_dir: "features"
-  step_definitions_dir: "steps"
+  features_dir: "src/test/resources/features"
+  step_definitions_dir: "src/test/stepdefinitions"
   step_definition_paths:
-    - "steps"
+    - "src/test/stepdefinitions"
   yaml_paths:
-    elements: "resources/elements"
-    api_requests: "resources/api_requests"
-    queries: "resources/queries"
-    config: "resources/config"
-  hooks_dir: "ptaf"
-  ui_pages_dir: "ptaf/ui"
-  elements_dir: "resources/elements"
-  config_yaml_dir: "resources/config"
+    elements: "src/test/resources/elements"
+    api_requests: "src/test/resources/api_requests"
+    queries: "src/test/resources/queries"
+    config: "src/test/resources/config"
+  hooks_dir: "src/main/ptaf"
+  ui_pages_dir: "src/main/ptaf/ui"
+  elements_dir: "src/test/resources/elements"
+  config_yaml_dir: "src/test/resources/config"
 
   max_feature_files: 24
   max_step_def_files: 24
@@ -37,14 +37,14 @@ ai_assistant:
     output_path: "target/ai-audit/generation-audit.jsonl"
   context:
     featurePaths:
-      - "features"
+      - "src/test/resources/features"
     stepDefinitionPaths:
-      - "steps"
+      - "src/test/stepdefinitions"
     yamlPaths:
-      elements: "resources/elements"
-      api_requests: "resources/api_requests"
-      queries: "resources/queries"
-      config: "resources/config"
+      elements: "src/test/resources/elements"
+      api_requests: "src/test/resources/api_requests"
+      queries: "src/test/resources/queries"
+      config: "src/test/resources/config"
     maxFeatureSnippets: 20
     maxStepDefinitionsInPrompt: 100
     maxYamlKeysInPrompt: 200
