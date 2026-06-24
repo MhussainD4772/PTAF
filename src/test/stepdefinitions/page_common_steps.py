@@ -7,7 +7,7 @@ import time
 
 from pytest_bdd import parsers
 
-from steps.step_binding import keyword_step
+from stepdefinitions.step_binding import keyword_step
 
 from ptaf.ui.page_common import PageCommonMethods
 from ptaf.utils import config

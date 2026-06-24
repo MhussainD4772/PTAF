@@ -12,11 +12,11 @@ from ptaf.ai.config.local_dot_env import get as dotenv_get
 
 
 def _package_root() -> Path:
-    return Path(__file__).resolve().parents[3]
+    return Path(__file__).resolve().parents[5]
 
 
 def _load_yaml() -> dict[str, Any]:
-    path = _package_root() / "resources" / "config" / "ai_assistant.yml"
+    path = _package_root() / "src" / "test" / "resources" / "config" / "ai_assistant.yml"
     if not path.is_file():
         return {}
     with path.open(encoding="utf-8") as handle:
@@ -86,10 +86,10 @@ class AiAssistantProperties:
         return self._str("model", "gemini-2.5-flash")
 
     def features_dir(self) -> str:
-        return self._str("features_dir", "features")
+        return self._str("features_dir", "src/test/resources/features")
 
     def step_definitions_dir(self) -> str:
-        return self._str("step_definitions_dir", "steps")
+        return self._str("step_definitions_dir", "src/test/stepdefinitions")
 
     def step_definition_paths(self) -> list[str]:
         value = self._ai().get("step_definition_paths")
@@ -105,10 +105,10 @@ class AiAssistantProperties:
 
     def yaml_paths(self) -> dict[str, str]:
         defaults = {
-            "elements": "resources/elements",
-            "api_requests": "resources/api_requests",
-            "queries": "resources/queries",
-            "config": "resources/config",
+            "elements": "src/test/resources/elements",
+            "api_requests": "src/test/resources/api_requests",
+            "queries": "src/test/resources/queries",
+            "config": "src/test/resources/config",
         }
         value = self._ai().get("yaml_paths")
         if not isinstance(value, dict):
@@ -189,16 +189,16 @@ class AiAssistantProperties:
         return self._integer("max_step_def_files", 8)
 
     def hooks_dir(self) -> str:
-        return self._str("hooks_dir", "ptaf")
+        return self._str("hooks_dir", "src/main/ptaf")
 
     def ui_pages_dir(self) -> str:
-        return self._str("ui_pages_dir", "ptaf/ui")
+        return self._str("ui_pages_dir", "src/main/ptaf/ui")
 
     def elements_dir(self) -> str:
-        return self._str("elements_dir", "resources/elements")
+        return self._str("elements_dir", "src/test/resources/elements")
 
     def config_yaml_dir(self) -> str:
-        return self._str("config_yaml_dir", "resources/config")
+        return self._str("config_yaml_dir", "src/test/resources/config")
 
     def max_hooks_files(self) -> int:
         return self._integer("max_hooks_files", 8)

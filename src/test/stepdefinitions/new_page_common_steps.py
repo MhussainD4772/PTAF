@@ -5,7 +5,7 @@ from __future__ import annotations
 from playwright.sync_api import Page
 from pytest_bdd import parsers
 
-from steps.step_binding import keyword_step
+from stepdefinitions.step_binding import keyword_step
 
 from ptaf.ui.frame_common import FrameCommonMethods
 from ptaf.ui.page_common import PageCommonMethods

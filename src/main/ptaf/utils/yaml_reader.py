@@ -10,7 +10,7 @@ import yaml
 
 logger = logging.getLogger(__name__)
 
-_RESOURCES_ROOT = Path(__file__).resolve().parent.parent.parent / "resources"
+_RESOURCES_ROOT = Path(__file__).resolve().parents[4] / "src" / "test" / "resources"
 _FOLDER_PATHS = ("elements", "queries", "api_requests", "config")
 
 
